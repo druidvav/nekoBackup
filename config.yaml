@@ -7,58 +7,53 @@
 #  m - ежемесячно (по-умолчанию, 1 числа)
 #  m[1,2,..,31] - ежемесячно, в указаные числа
 
-schedule: "d"
 storage: /mnt/backup/
 exclude:
 #  - /var/log/nginx
 
-milestones:
+schedule:
   monthly:
-    schedule: "m[1]"
-    keep: "1 month"
+    - system
   weekly:
-    schedule: "w[1]"
-    keep: "2 weeks"
+    - home
   daily:
-    schedule: "d"
-    keep: "7 days"
+    - mysql
+    - postgres
+  managed:
+    - websites
+#    - special
 
 system:
-  schedule: "m[1]|w[1]"
   include:
     - /etc
+    - /root
+    - /usr/local
     - /var/log
     - /var/spool
-    - /root
+    - /var/www
   exclude: [ ]
   packages: Debian
-  # schedule_default not supported
-  # schedule_override not supported
 
 home:
-  schedule: "m[1]"
   exclude:
     - websites
-  # schedule_default not supported
-  # schedule_override supported
 
 websites:
   # no excludes are supported here
   list: /home/*/websites
   preg: "#^(/home/(.*?)/websites):#"
-  schedule_default: "w[1,3,5,7]"
-  schedule_override:
-    h_informatika: "m[1]"
-    h_druidvav_.nekoweb: "m[1]"
-    h_druidvav_shinkansen.ru: "m[1]"
-    h_otaku_wiki.otaku.ru: "m[1]"
+  period_default: "weekly"
+  period_override:
+    h_informatika: "monthly"
+    h_druidvav_.nekoweb: "monthly"
+    h_druidvav_shinkansen.ru: "monthly"
+    h_otaku_wiki.otaku.ru: "monthly"
 
-
-special: [ ]
-#  nekoweb:
-#    schedule: "m[1]"
+#special:
+#  var_www:
+#    period: monthly
 #    include:
-#      - /home/h_druidvav/websites/.nekoweb
+#      - /var/www
 #    exclude: [ ]
   
 mysql:

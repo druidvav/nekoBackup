@@ -2,15 +2,13 @@
 class Backup
 {
   protected $config;
-  protected $week_day;
-  protected $month_day;
+  protected $period;
   protected $callbacks;
 
   public function __construct($config)
   {
     $this->config = $config;
 
-    // TODO Events
     // TODO Errors handling
   }
 
@@ -21,54 +19,48 @@ class Backup
 
   public function trigger($event, $options = array())
   {
-    if(empty($this->callbacks[$event])) return;
+    if(empty($this->callbacks[$event])) return null;
 
     return call_user_func_array($this->callbacks[$event], array(&$this, $options));
   }
 
-  public function run($date)
+  public function run($date, $period)
   {
-    $this->week_day = date('N', $date);
-    $this->month_day = date('j', $date);
-
-    $this->log("Backup started: DoW={$this->week_day}, DoM={$this->month_day}.", 2);
-
-    if(!$this->checkSchedule($this->config['schedule']))
+    if(empty($period) || !isset($this->config['schedule'][$period]))
     {
-      $this->log("Backup is not scheduled for today.", 2);
+      $this->log("Unknown schedule period '{$period}'", 4);
+      return false;
     }
 
-    foreach($this->config as $section => &$config)
+    $this->period = $period;
+    $schedule = array_merge($this->config['schedule'][$period], $this->config['schedule']['managed']);
+
+    $this->log("Backup started: {$period}.", 2);
+
+    $this->trigger('start');
+
+    foreach($schedule as $section)
     {
-      switch($section)
+      if(empty($this->config[$section]))
       {
-        default: break;
-        case 'system':
-        case 'home':
-        case 'websites':
-        case 'mysql':
-        case 'postgres':
-        case 'special':
-          $this->logIndent($section);
-          if(empty($config['schedule']) || $this->checkSchedule($config['schedule']))
-          {
-            $this->log("started", 2);
-
-            $method = 'backup' . ucfirst($section);
-            $this->$method($config);
-
-            $this->log("finished", 2);
-          }
-          else
-          {
-            $this->log("skipping ({$config['schedule']})", 2);
-          }
-          $this->logIndentBack();
-          break;
+        $this->log("Unknown section '{$section}'", 3);
+        continue;
       }
+
+      $this->logIndent($section);
+      $this->log("started", 2);
+
+      $method = 'backup' . ucfirst($section);
+      $this->$method($this->config[$section]);
+
+      $this->log("finished", 2);
+      $this->logIndentBack();
     }
+
+    $this->trigger('finish');
 
     $this->log("Backup finished.", 2);
+    return true;
   }
 
   public function backupSystem(&$config)
@@ -76,18 +68,17 @@ class Backup
     $this->log("archiving..", 1);
     $filename = $this->prepareFilename('system', 'tar.bz2');
     $this->archive($filename, $config['include'], $config['exclude']);
+    $this->trigger('file', array('filename' => $filename));
     $this->log(" ..done", 1);
 
-    $this->trigger('file', array('filename' => $filename));
 
     if($config['packages'] == 'Debian')
     {
       $this->log("reading packages for Debian..", 1);
       $filename = $this->prepareFilename('system-packages', 'txt.bz2');
       `dpkg --get-selections | grep -v deinstall | bzip2 --best > {$filename}`;
-      $this->log(" ..done", 1);
-
       $this->trigger('file', array('filename' => $filename));
+      $this->log(" ..done", 1);
     }
     else
     {
@@ -104,21 +95,17 @@ class Backup
 
       $this->logIndent($dir);
 
-      if($this->checkScheduleOverride($config['schedule_override'][$dir]))
+      $exclude = array();
+      foreach($config['exclude'] as $exclude_dir)
       {
-        $exclude = array();
-        foreach($config['exclude'] as $exclude_dir)
-        {
-          $exclude[] = '/home/' . $dir . '/' . $exclude_dir;
-        }
-
-        $this->log("archiving..", 1);
-        $filename = $this->prepareFilename('home-' . $dir, 'tar.bz2');
-        $this->archive($filename, array('/home/' . $dir), $exclude);
-        $this->log(" ..done", 1);
-
-        $this->trigger('file', array('filename' => $filename));
+        $exclude[] = '/home/' . $dir . '/' . $exclude_dir;
       }
+
+      $this->log("archiving..", 1);
+      $filename = $this->prepareFilename('home-' . $dir, 'tar.bz2');
+      $this->archive($filename, array('/home/' . $dir), $exclude);
+      $this->trigger('file', array('filename' => $filename));
+      $this->log(" ..done", 1);
 
       $this->logIndentBack();
     }
@@ -126,42 +113,54 @@ class Backup
 
   public function backupWebsites(&$config)
   {
+    $websites = array();
     $dirs = `ls {$config['list']}`;
     foreach(explode("\n", $dirs) as $dir)
     {
       if(empty($dir)) continue;
       if(!preg_match($config['preg'], $dir, $match)) continue;
 
-      $user = $match[2]; // TODO Support for empty
-      $prefix = "website-{$user}-";
+      $website = array();
+      $website['prefix'] = 'website-' . (!empty($match[2]) ? "{$match[2]}-" : '');
 
-      $this->logIndent($user);
+      $subdirs = `ls -A {$match[1]}`;
+      foreach(explode("\n", $subdirs) as $subdir)
+      {
+        if(empty($subdir)) continue;
 
-      //if($this->checkScheduleOverride($config['schedule_override'][$user], $config['schedule_default']))
-      //{
-        $subdirs = `ls -A {$match[1]}`;
-        foreach(explode("\n", $subdirs) as $subdir)
+        $website['id'] = (!empty($match[2]) ? $match[2] . '_' : '') . $subdir;
+        $website['group'] = @$match[2];
+        $website['filename'] = $website['prefix'] . $subdir;
+        $website['directory'] = $match[1] . '/' . $subdir;
+
+        $period = !empty($config['period_default']) ? $config['period_default'] : $this->period;
+
+        if(!empty($config['period_override'][$website['id']]))
         {
-          if(empty($subdir)) continue;
-
-          $this->logIndent($subdir);
-
-          $default_schedule = !empty($config['schedule_override'][$user]) ? $config['schedule_override'][$user] : $config['schedule_default'];
-          if($this->checkScheduleOverride($config['schedule_override']["{$user}_{$subdir}"], $default_schedule))
-          {
-            $this->log("archiving..", 1);
-            $filename = $this->prepareFilename($prefix . $subdir, 'tar.bz2');
-            $this->archive($filename, array($match[1] . '/' . $subdir), array());
-            $this->log(" ..done", 1);
-
-            $this->trigger('file', array('filename' => $filename));
-          }
-
-          $this->logIndentBack();
+          $period = $config['period_override'][$website['id']];
         }
-      //}
+        elseif(!empty($config['period_override'][$website['group']]))
+        {
+          $period = $config['period_override'][$website['group']];
+        }
 
-      $this->logIndentBack();
+        $this->logIndent($website['directory']);
+
+        if($period == $this->period)
+        {
+          $this->log('archiving..', 1);
+          $filename = $this->prepareFilename($website['filename'], 'tar.bz2');
+          $this->archive($filename, array($website['directory']), array());
+          $this->trigger('file', array('filename' => $filename));
+          $this->log(" ..done", 1);
+        }
+        else
+        {
+          $this->log('skipping (' . $period . ')', 1);
+        }
+
+        $this->logIndentBack();
+      }
     }
   }
 
@@ -169,22 +168,19 @@ class Backup
   {
     foreach($config as $pkg => $pkg_config)
     {
-      if($pkg == 'schedule') continue;
-
       $this->logIndent($pkg);
 
-      if(empty($pkg_config['schedule']) || $this->checkSchedule($pkg_config['schedule']))
+      if($pkg_config['period'] == $this->period)
       {
         $this->log('archiving..', 1);
         $filename = $this->prepareFilename('special-' . $pkg, 'tar.bz2');
         $this->archive($filename, $pkg_config['include'], $pkg_config['exclude']);
-        $this->log(' ..done', 1);
-
         $this->trigger('file', array('filename' => $filename));
+        $this->log(' ..done', 1);
       }
       else
       {
-        $this->log("skipping ({$pkg_config['schedule']})", 1);
+        $this->log("skipping ({$pkg_config['period']})", 1);
       }
 
       $this->logIndentBack();
@@ -219,15 +215,11 @@ class Backup
 
       $this->logIndent($db);
 
-      if($this->checkScheduleOverride($cfg['schedule_override'][$db]))
-      {
-        $this->log("archiving..", 1);
-        $filename = $this->prepareFilename('mysql-' . $row['Database'], 'sql.bz2');
-        `mysqldump -u {$cfg['username']} -p{$cfg['password']} -h {$cfg['hostname']} {$row['Database']} | bzip2 -c > "{$filename}"`;
-        $this->log(" ..done", 1);
-
-        $this->trigger('file', array('filename' => $filename));
-      }
+      $this->log("archiving..", 1);
+      $filename = $this->prepareFilename('mysql-' . $row['Database'], 'sql.bz2');
+      `mysqldump -u {$cfg['username']} -p{$cfg['password']} -h {$cfg['hostname']} {$row['Database']} | bzip2 -c > "{$filename}"`;
+      $this->trigger('file', array('filename' => $filename));
+      $this->log(" ..done", 1);
 
       $this->logIndentBack();
     }
@@ -248,15 +240,11 @@ class Backup
 
       $this->logIndent($db);
 
-      if($this->checkScheduleOverride($cfg['schedule_override'][$db]))
-      {
-        $this->log("archiving..", 1);
-        $filename = $this->prepareFilename('postgres-' . $db, 'sql.bz2');
-        `su - {$cfg['sh_user']} -c "pg_dump -c --column-inserts --inserts {$db}" | bzip2 -c > "{$filename}"`;
-        $this->log(" ..done", 1);
-
-        $this->trigger('file', array('filename' => $filename));
-      }
+      $this->log("archiving..", 1);
+      $filename = $this->prepareFilename('postgres-' . $db, 'sql.bz2');
+      `su - {$cfg['sh_user']} -c "pg_dump -c --column-inserts --inserts {$db}" | bzip2 -c > "{$filename}"`;
+      $this->trigger('file', array('filename' => $filename));
+      $this->log(" ..done", 1);
 
       $this->logIndentBack();
     }
@@ -307,58 +295,6 @@ class Backup
     }
 
     return `tar {$cl_exclude} -cjpf {$archive} {$cl_include} 2>&1`;
-  }
-
-  protected function checkSchedule($schedules)
-  {
-    $result = false;
-
-    $schedules = explode('|', trim($schedules));
-    foreach($schedules as $schedule)
-    {
-      switch($schedule{0})
-      {
-        // Disabled
-        case 'N': $result = $result || false; break;
-        // Daily
-        case 'd': $result = $result || true; break;
-        // Weekly
-        case 'w':
-          if($schedule{1} == '[')
-            $days = explode(',', substr($schedule, 2, -1));
-          else
-            $days = array(1);
-          $result = $result || in_array($this->week_day, $days);
-          break;
-        // Monthly
-        case 'w':
-          if($schedule{1} == '[')
-            $days = explode(',', substr($schedule, 2, -1));
-          else
-            $days = array(1);
-          $result = $result || in_array($this->month_day, $days);
-          break;
-      }
-    }
-
-    return $result;
-  }
-
-  protected function checkScheduleOverride(&$override, $schedule = '')
-  {
-    if(!empty($override))
-    {
-      $this->log("schedule override", 1);
-      $schedule = $override;
-    }
-
-    if(!empty($schedule) && !$this->checkSchedule($schedule))
-    {
-      $this->log("skipping ({$schedule})", 2);
-      return false;
-    }
-
-    return true;
   }
 
   protected $log_indent = array();
