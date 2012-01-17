@@ -1,0 +1,81 @@
+#
+# Формат расписания
+#  N - отключено (цифра ноль)
+#  d - ежедневно
+#  w - еженедельно (по-умолчанию, по понедельникам)
+#  w[1,2,3,4,5,6,7] - еженедельно, в указаные дни недели
+#  m - ежемесячно (по-умолчанию, 1 числа)
+#  m[1,2,..,31] - ежемесячно, в указаные числа
+
+schedule: "d"
+storage: /mnt/backup/
+exclude:
+#  - /var/log/nginx
+
+milestones:
+  monthly:
+    schedule: "m[1]"
+    keep: "1 month"
+  weekly:
+    schedule: "w[1]"
+    keep: "2 weeks"
+  daily:
+    schedule: "d"
+    keep: "7 days"
+
+system:
+  schedule: "m[1]|w[1]"
+  include:
+    - /etc
+    - /var/log
+    - /var/spool
+    - /root
+  exclude: [ ]
+  packages: Debian
+  # schedule_default not supported
+  # schedule_override not supported
+
+home:
+  schedule: "m[1]"
+  exclude:
+    - websites
+  # schedule_default not supported
+  # schedule_override supported
+
+websites:
+  # no excludes are supported here
+  list: /home/*/websites
+  preg: "#^(/home/(.*?)/websites):#"
+  schedule_default: "w[1,3,5,7]"
+  schedule_override:
+    h_informatika: "m[1]"
+    h_druidvav_.nekoweb: "m[1]"
+    h_druidvav_shinkansen.ru: "m[1]"
+    h_otaku_wiki.otaku.ru: "m[1]"
+
+
+special: [ ]
+#  nekoweb:
+#    schedule: "m[1]"
+#    include:
+#      - /home/h_druidvav/websites/.nekoweb
+#    exclude: [ ]
+  
+mysql:
+  hostname: localhost
+  username: root
+  password: jecneOcwev8
+  exclude:
+    - information_schema
+
+postgres:
+  sh_user: postgres
+  exclude:
+    - postgres
+
+dropbox:
+  key: 3i2d0m8fgzk5cdw
+  secret: l3g7z1ishxosiyx
+
+  token: ia4pd7yome0r4zs
+  token_secret: x0qe4qo47cj8m1l
