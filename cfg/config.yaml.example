@@ -1,12 +1,3 @@
-#
-# Формат расписания
-#  N - отключено (цифра ноль)
-#  d - ежедневно
-#  w - еженедельно (по-умолчанию, по понедельникам)
-#  w[1,2,3,4,5,6,7] - еженедельно, в указаные дни недели
-#  m - ежемесячно (по-умолчанию, 1 числа)
-#  m[1,2,..,31] - ежемесячно, в указаные числа
-
 storage: /mnt/backup/
 exclude:
 #  - /var/log/nginx
@@ -72,7 +63,7 @@ websites:
 mysql:
   hostname: localhost
   username: root
-  password: jecneOcwev8
+  password: ##password##
   exclude:
     - information_schema
 
@@ -80,10 +71,3 @@ postgres:
   sh_user: postgres
   exclude:
     - postgres
-
-dropbox:
-  key: 3i2d0m8fgzk5cdw
-  secret: l3g7z1ishxosiyx
-
-  token: ia4pd7yome0r4zs
-  token_secret: x0qe4qo47cj8m1l
