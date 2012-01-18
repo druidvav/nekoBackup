@@ -56,9 +56,9 @@ class Dropbox_OAuth_Curl extends Dropbox_OAuth {
      * @return string 
      */
     public function fetch($uri, $arguments = array(), $method = 'GET', $httpHeaders = array()) {
-		
+
 		$uri=str_replace('http://', 'https://', $uri); // all https, upload makes problems if not
-		if (is_string($arguments) and strtoupper($method) == 'POST') {
+		if ((is_string($arguments) || !empty($arguments['file'])) and strtoupper($method) == 'POST') {
 		    preg_match("/\?file=(.*)$/i", $uri, $matches);
 			if (isset($matches[1])) {
                 $uri = str_replace($matches[0], "", $uri);
@@ -73,10 +73,10 @@ class Dropbox_OAuth_Curl extends Dropbox_OAuth {
 		if (strtoupper($method) == 'POST') {
 			curl_setopt($ch, CURLOPT_URL, $uri);
 			curl_setopt($ch, CURLOPT_POST, true);
-			if (is_array($arguments))
-				$arguments=http_build_query($arguments);
+			//if (is_array($arguments))
+				//$arguments=http_build_query($arguments);
 			curl_setopt($ch, CURLOPT_POSTFIELDS, $arguments);
-			$httpHeaders['Content-Length']=strlen($arguments);
+			//$httpHeaders['Content-Length']=strlen($arguments);
 		} else {
 			curl_setopt($ch, CURLOPT_URL, $uri.'?'.http_build_query($arguments));
 			curl_setopt($ch, CURLOPT_POST, false);

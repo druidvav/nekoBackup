@@ -3,7 +3,7 @@ include_once('./lib/Backup.php');
 include_once('./lib/yaml.php');
 include_once('./lib/Dropbox/autoload.php');
 
-echo "nekoBackup dropbox 1.0beta1\n";
+echo "nekoBackup dropbox 1.0beta2\n";
 echo "\n";
 
 if(!is_file('./cfg/dropbox.json'))
@@ -22,7 +22,7 @@ if(@$_SERVER['argv'][1] == 'install')
 {
   while(empty($config['token']))
   {
-    $oauth = new Dropbox_OAuth_PEAR($config['key'], $config['secret']);
+    $oauth = new Dropbox_OAuth_Curl($config['key'], $config['secret']);
 
     $tokens = $oauth->getRequestToken();
     echo "Please open this link in browser to enable dropbox:\n";
@@ -62,7 +62,7 @@ if(@$_SERVER['argv'][1] == 'install')
   exit;
 }
 
-$oauth = new Dropbox_OAuth_PEAR($config['key'], $config['secret']);
+$oauth = new Dropbox_OAuth_Curl($config['key'], $config['secret']);
 $oauth->setToken($config);
 
 $dropbox = new Dropbox_API($oauth);

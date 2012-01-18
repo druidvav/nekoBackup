@@ -107,13 +107,13 @@ class Dropbox_API {
         if($directory==='.') $directory = '';
         if (is_null($root)) $root = $this->root;
 
-        if (is_string($file)) {
+        /*if (is_string($file)) {
 
             $file = fopen($file,'r');
 
         } elseif (!is_resource($file)) {
             throw new Dropbox_Exception('File must be a file-resource or a string');
-        }
+        }*/
         $result=$this->multipartFetch($this->api_content_url . 'files/' . 
                 $root . '/' . trim($directory,'/'), $file, $filename);
         
@@ -259,27 +259,18 @@ class Dropbox_API {
      */
     protected function multipartFetch($uri, $file, $filename) {
 
-        /* random string */
-        $boundary = 'R50hrfBj5JYyfR3vF3wR96GPCC9Fd2q2pVMERvEaOE3D8LZTgLLbRpNwXek3';
-
-        $headers = array(
-            'Content-Type' => 'multipart/form-data; boundary=' . $boundary,
-        );
-
-        $body="--" . $boundary . "\r\n";
-        $body.="Content-Disposition: form-data; name=file; filename=".rawurldecode($filename)."\r\n";
-        $body.="Content-type: application/octet-stream\r\n";
-        $body.="\r\n";
-        $body.=stream_get_contents($file);
-        $body.="\r\n";
-        $body.="--" . $boundary . "--";
+        $body = array();
+        $body['file'] = '@' . basename($file);
 
         // Dropbox requires the filename to also be part of the regular arguments, so it becomes
         // part of the signature. 
-        $uri.='?file=' . $filename;
+        $uri.='?file=' . basename($file);
 
-        return $this->oauth->fetch($uri, $body, 'POST', $headers);
-
+        $cwd = getcwd();
+        chdir(dirname($file));
+        $result = $this->oauth->fetch($uri, $body, 'POST', array());
+        chdir($cwd);
+        return $result;
     }
 	
 	
