@@ -22,6 +22,19 @@ schedule:
   managed:
     - websites
 #    - special
+    - cleanup # Must always be last!
+
+#
+# Указываем сроки хранения для директорий в формате strtotime
+#
+# monthly - первое число месяца
+# weekly  - понедельник каждой недели (кроме monthly)
+# daily   - каждый день (кроме monthly и weekly)
+#
+cleanup:
+  monthly: "1 month"
+  weekly:  "4 weeks"
+  daily:   "7 days"
 
 system:
   include:

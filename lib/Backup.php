@@ -8,8 +8,6 @@ class Backup
   public function __construct($config)
   {
     $this->config = $config;
-
-    // TODO Errors handling
   }
 
   public function bind($event, $callback)
@@ -24,7 +22,21 @@ class Backup
     return call_user_func_array($this->callbacks[$event], array(&$this, $options));
   }
 
-  public function run($date, $period)
+  public function execute($date)
+  {
+    switch($period = $this->getDatePeriod($date))
+    { // TODO: Issue #2
+      case 'monthly':
+        $this->execurePeriodic('monthly');
+      case 'weekly':
+        $this->execurePeriodic('weekly');
+      case 'daily':
+        $this->execurePeriodic('daily');
+        break;
+    }
+  }
+
+  public function execurePeriodic($period)
   {
     if(empty($period) || !isset($this->config['schedule'][$period]))
     {
@@ -38,7 +50,6 @@ class Backup
     $this->log("Backup started: {$period}.", 2);
 
     $this->trigger('start');
-
     foreach($schedule as $section)
     {
       if(empty($this->config[$section]))
@@ -51,16 +62,50 @@ class Backup
       $this->log("started", 2);
 
       $method = 'backup' . ucfirst($section);
-      $this->$method($this->config[$section]);
+      if($section == 'cleanup')
+      {
+        $this->$method($this->config[$section]);
+      }
 
       $this->log("finished", 2);
       $this->logIndentBack();
     }
-
     $this->trigger('finish');
 
     $this->log("Backup finished.", 2);
+
     return true;
+  }
+
+  protected function backupCleanup($config)
+  {
+    $dirs = `ls {$this->config['storage']}`;
+    foreach(explode("\n", $dirs) as $dir)
+    {
+      if(empty($dir)) continue;
+
+      $date = strtotime($dir);
+      $period = $this->getDatePeriod($date);
+
+      if(time() > strtotime('+' . $config[$period], $date))
+      {
+        $this->log("{$dir} expired ({$period})");
+
+        $this->trigger('cleanup.before', array('directory' => $dir));
+
+        `rm -f {$this->config['storage']}{$dir}/*`;
+        `rmdir {$this->config['storage']}{$dir}/`;
+
+        $this->trigger('cleanup.after', array('directory' => $dir));
+
+        $this->log($dir . ' deleted');
+      }
+      else
+      {
+        $this->log("{$dir} actual ({$period})");
+      }
+
+    }
   }
 
   public function backupSystem(&$config)
@@ -113,7 +158,6 @@ class Backup
 
   public function backupWebsites(&$config)
   {
-    $websites = array();
     $dirs = `ls {$config['list']}`;
     foreach(explode("\n", $dirs) as $dir)
     {
@@ -295,6 +339,22 @@ class Backup
     }
 
     return `tar {$cl_exclude} -cjpf {$archive} {$cl_include} 2>&1`;
+  }
+
+  protected function getDatePeriod($date)
+  { // TODO: Issue #2
+    if($date == strtotime('first monday ' . date('M Y', $date)))
+    { // monthly
+      return "monthly";
+    }
+    elseif(date('N', $date) == 1)
+    { // weekly
+      return "weekly";
+    }
+    else
+    { // weekly
+      return "daily";
+    }
   }
 
   protected $log_indent = array();
