@@ -1,7 +1,7 @@
 <?php
 class Backup
 {
-  protected $config;
+  public $config;
   protected $period;
   protected $callbacks;
 
@@ -17,7 +17,7 @@ class Backup
 
   public function trigger($event, $options = array())
   {
-    if(empty($this->callbacks[$event])) return null;
+    if(empty($this->callbacks[$event])) return true;
 
     return call_user_func_array($this->callbacks[$event], array(&$this, $options));
   }
@@ -62,10 +62,7 @@ class Backup
       $this->log("started", 2);
 
       $method = 'backup' . ucfirst($section);
-      if($section == 'cleanup')
-      {
-        $this->$method($this->config[$section]);
-      }
+      $this->$method($this->config[$section]);
 
       $this->log("finished", 2);
       $this->logIndentBack();
@@ -75,37 +72,6 @@ class Backup
     $this->log("Backup finished.", 2);
 
     return true;
-  }
-
-  protected function backupCleanup($config)
-  {
-    $dirs = `ls {$this->config['storage']}`;
-    foreach(explode("\n", $dirs) as $dir)
-    {
-      if(empty($dir)) continue;
-
-      $date = strtotime($dir);
-      $period = $this->getDatePeriod($date);
-
-      if(time() > strtotime('+' . $config[$period], $date))
-      {
-        $this->log("{$dir} expired ({$period})");
-
-        $this->trigger('cleanup.before', array('directory' => $dir));
-
-        `rm -f {$this->config['storage']}{$dir}/*`;
-        `rmdir {$this->config['storage']}{$dir}/`;
-
-        $this->trigger('cleanup.after', array('directory' => $dir));
-
-        $this->log($dir . ' deleted');
-      }
-      else
-      {
-        $this->log("{$dir} actual ({$period})");
-      }
-
-    }
   }
 
   public function backupSystem(&$config)
@@ -341,9 +307,59 @@ class Backup
     return `tar {$cl_exclude} -cjpf {$archive} {$cl_include} 2>&1`;
   }
 
+  protected function backupCleanup($config)
+  {
+    $dirs = `ls {$this->config['storage']}`;
+    foreach(explode("\n", $dirs) as $dir)
+    {
+      if(empty($dir)) continue;
+
+      if(!$this->checkDateDirectory($dir))
+      {
+        $this->log("{$dir} expired");
+
+        if(!$this->trigger('cleanup.before', array('directory' => $dir)))
+        { // Error while deleting
+          continue;
+        }
+
+        `rm -f {$this->config['storage']}{$dir}/*`;
+        `rmdir {$this->config['storage']}{$dir}/`;
+
+        $this->trigger('cleanup.after', array('directory' => $dir));
+
+        $this->log($dir . ' deleted');
+      }
+      else
+      {
+        $this->log("{$dir} actual");
+      }
+    }
+    $this->trigger('cleanup');
+  }
+
+  public function checkDateDirectory($dir)
+  {
+    $date = strtotime($dir);
+    $period = $this->getDatePeriod($date);
+
+    if(time() > strtotime('+' . $this->config['cleanup'][$period], $date))
+    {
+      return false;
+    }
+    else
+    {
+      return true;
+    }
+  }
+
   protected function getDatePeriod($date)
   { // TODO: Issue #2
-    if($date == strtotime('first monday ' . date('M Y', $date)))
+    if($date == 'initial')
+    {
+      return "monthly";
+    }
+    elseif($date == strtotime('first monday ' . date('M Y', $date)))
     { // monthly
       return "monthly";
     }
