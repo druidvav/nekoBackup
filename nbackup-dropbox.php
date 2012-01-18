@@ -3,7 +3,7 @@ include_once('./lib/Backup.php');
 include_once('./lib/yaml.php');
 include_once('./lib/Dropbox/autoload.php');
 
-echo "nekoBackup dropbox 1.0beta2\n";
+echo "nekoBackup dropbox 1.0beta1\n";
 echo "\n";
 
 if(!is_file('./cfg/dropbox.json'))
