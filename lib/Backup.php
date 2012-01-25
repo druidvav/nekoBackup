@@ -128,7 +128,15 @@ class Backup
     foreach(explode("\n", $dirs) as $dir)
     {
       if(empty($dir)) continue;
-      if(!preg_match($config['preg'], $dir, $match)) continue;
+
+      if(!empty($config['grep']))
+      { // TODO
+        if(!preg_match($config['preg'], $dir, $match)) continue;
+      }
+      else
+      {
+        $match[1] = $config['list'];
+      }
 
       $website = array();
       $website['prefix'] = 'website-' . (!empty($match[2]) ? "{$match[2]}-" : '');
@@ -171,6 +179,12 @@ class Backup
 
         $this->logIndentBack();
       }
+
+      if(empty($config['grep']))
+      { // TODO
+        break;
+      }
+      
     }
   }
 
