@@ -2,6 +2,9 @@
 include_once(dirname(__FILE__) . '/lib/Backup.php');
 include_once(dirname(__FILE__) . '/lib/BackupDirectory.php');
 include_once(dirname(__FILE__) . '/lib/BackupSubdirectory.php');
+include_once(dirname(__FILE__) . '/lib/BackupDatabase.php');
+include_once(dirname(__FILE__) . '/lib/BackupSystem.php');
+include_once(dirname(__FILE__) . '/lib/BackupCleanup.php');
 include_once(dirname(__FILE__) . '/lib/yaml.php');
 
 echo "nekoBackup 1.1alpha1\n";
