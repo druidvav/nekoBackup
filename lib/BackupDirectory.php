@@ -5,7 +5,7 @@ class BackupDirectory
   {
     foreach($config as $pkg => $pkg_config)
     {
-      $parent->logIndent($pkg);
+      BackupLogger::indent($pkg);
 
       if($pkg_config['period'] == $parent->period)
       {
@@ -13,10 +13,10 @@ class BackupDirectory
       }
       else
       {
-        $parent->log("skipping ({$pkg_config['period']})", 1);
+        BackupLogger::append("skipping ({$pkg_config['period']})", 1);
       }
 
-      $parent->logIndentBack();
+      BackupLogger::back();
     }
   }
 
@@ -40,10 +40,10 @@ class BackupDirectory
       $excluded[] = $dir{0} != '/' ? @$config['base'] . '/' . $dir : $dir;
     }
 
-    $parent->log("archiving..", 1);
+    BackupLogger::append("archiving..", 1);
     self::archive($file, $included, $excluded);
     $parent->trigger('file', array('filename' => $file));
-    $parent->log(" ..done", 1);
+    BackupLogger::append(" ..done", 1);
   }
 
   protected static function archive($archive, $include, $exclude = array())

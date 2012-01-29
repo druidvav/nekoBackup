@@ -5,7 +5,7 @@ class BackupDatabase
   {
     foreach($config as $pkg => $pkg_config)
     {
-      $parent->logIndent($pkg);
+      BackupLogger::indent($pkg);
 
       if($pkg_config['period'] == $parent->period)
       {
@@ -13,16 +13,16 @@ class BackupDatabase
       }
       else
       {
-        $parent->log("skipping ({$pkg_config['period']})", 1);
+        BackupLogger::append("skipping ({$pkg_config['period']})", 1);
       }
 
-      $parent->logIndentBack();
+      BackupLogger::back();
     }
   }
 
   public static function executeSingle(Backup &$parent, $pkg, $config)
   {
-    $parent->log('getting database list..', 1);
+    BackupLogger::append('getting database list..', 1);
 
     switch($config['type'])
     {
@@ -31,19 +31,19 @@ class BackupDatabase
       default: $list = array(); break;
     }
 
-    $parent->log(' ..done', 1);
+    BackupLogger::append(' ..done', 1);
 
     foreach($list as $db)
     {
       if(in_array($db, $config['exclude']))
       {
-        $parent->log("$db excluded", 1);
+        BackupLogger::append("$db excluded", 1);
         continue;
       }
 
-      $parent->logIndent($db);
+      BackupLogger::indent($db);
 
-      $parent->log("archiving..", 1);
+      BackupLogger::append("archiving..", 1);
       $filename = $parent->prepareFilename($pkg . '-' . $db, 'sql.bz2');
 
       switch($config['type'])
@@ -53,9 +53,9 @@ class BackupDatabase
       }
 
       $parent->trigger('file', array('filename' => $filename));
-      $parent->log(" ..done", 1);
+      BackupLogger::append(" ..done", 1);
 
-      $parent->logIndentBack();
+      BackupLogger::back();
     }
   }
 

@@ -10,7 +10,7 @@ class BackupCleanup
 
       if(!self::checkDateDirectory($parent, $dir))
       {
-        $parent->log("{$dir} expired");
+        BackupLogger::append("{$dir} expired");
 
         if(!$parent->trigger('cleanup.before', array('directory' => $dir)))
         { // Error while deleting
@@ -22,11 +22,11 @@ class BackupCleanup
 
         $parent->trigger('cleanup.after', array('directory' => $dir));
 
-        $parent->log($dir . ' deleted');
+        BackupLogger::append($dir . ' deleted');
       }
       else
       {
-        $parent->log("{$dir} actual");
+        BackupLogger::append("{$dir} actual");
       }
     }
     $parent->trigger('cleanup');

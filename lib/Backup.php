@@ -5,9 +5,19 @@ class Backup
   public $period;
   protected $callbacks;
 
-  public function __construct($config)
+  public function __construct($config_path)
   {
-    $this->config = $config;
+    spl_autoload_register(array('Backup', 'Autoload'));
+
+    $this->config = Spyc::YAMLLoad($config_path);
+  }
+
+  public static function Autoload($class)
+  {
+    if(file_exists(dirname(__FILE__) . '/' . $class . '.php'))
+    {
+      include_once(dirname(__FILE__) . '/' . $class . '.php');
+    }
   }
 
   public function bind($event, $callback)
@@ -40,29 +50,29 @@ class Backup
   {
     $this->period = $period;
 
-    $this->log("Backup started: {$period}.", 2);
+    BackupLogger::append("Backup started: {$period}.", 2);
 
     $this->trigger('start');
     foreach($this->config['schedule'] as $section)
     {
       if(empty($this->config[$section]))
       {
-        $this->log("Unknown section '{$section}'", 3);
+        BackupLogger::append("Unknown section '{$section}'", 3);
         continue;
       }
 
-      $this->logIndent($section);
-      $this->log("started", 2);
+      BackupLogger::indent($section);
+      BackupLogger::append("started", 2);
 
       $class = 'Backup' . ucfirst($section);
       $class::execute($this, $this->config[$section]);
 
-      $this->log("finished", 2);
-      $this->logIndentBack();
+      BackupLogger::append("finished", 2);
+      BackupLogger::back();
     }
     $this->trigger('finish');
 
-    $this->log("Backup finished.", 2);
+    BackupLogger::append("Backup finished.", 2);
 
     return true;
   }
@@ -111,17 +121,4 @@ class Backup
       return "daily";
     }
   }
-
-  protected $log_indent = array();
-
-  // Levels: 1 - notice, 2 - status update, 3 - warning, 4 - error
-  public function log($message, $level = 1)
-  {
-    $date = date("Y.m.d H:i:s");
-    $indent = $this->log_indent ? implode(' > ', $this->log_indent) . ' > ' : '';
-    echo "$date > $level > {$indent}$message \n";
-  }
-
-  public function logIndent($group) { $this->log_indent[] = $group; }
-  public function logIndentBack() { array_pop($this->log_indent); }
 }

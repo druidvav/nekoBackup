@@ -5,7 +5,7 @@ class BackupSubdirectory
   {
     foreach($config as $pkg => $pkg_config)
     {
-      $parent->logIndent($pkg);
+      BackupLogger::indent($pkg);
 
       if($pkg_config['period'] == $parent->period)
       {
@@ -18,12 +18,12 @@ class BackupSubdirectory
             continue;
           }
 
-          $parent->logIndent($dir);
+          BackupLogger::indent($dir);
 
           $override = @$pkg_config['period_override'][$dir];
           if(!empty($override) && $override != $parent->period)
           {
-            $parent->log('skipping (' . $override . ')', 1);
+            BackupLogger::append('skipping (' . $override . ')', 1);
           }
           elseif(!empty($base[1]))
           {
@@ -34,12 +34,12 @@ class BackupSubdirectory
                 continue;
               }
 
-              $parent->logIndent($subdir);
+              BackupLogger::indent($subdir);
 
               $override = @$pkg_config['period_override'][$dir . '_' . $subdir];
               if(!empty($override) && $override != $parent->period)
               {
-                $parent->log('skipping (' . $override . ')', 1);
+                BackupLogger::append('skipping (' . $override . ')', 1);
               }
               else
               {
@@ -52,7 +52,7 @@ class BackupSubdirectory
                 ));
               }
 
-              $parent->logIndentBack();
+              BackupLogger::back();
             }
           }
           else
@@ -64,15 +64,15 @@ class BackupSubdirectory
             ));
           }
 
-          $parent->logIndentBack();
+          BackupLogger::back();
         }
       }
       else
       {
-        $parent->log("skipping ({$pkg_config['period']})", 1);
+        BackupLogger::append("skipping ({$pkg_config['period']})", 1);
       }
 
-      $parent->logIndentBack();
+      BackupLogger::back();
     }
   }
 
