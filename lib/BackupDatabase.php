@@ -1,15 +1,15 @@
 <?php
 class BackupDatabase
 {
-  public static function execute(Backup &$parent, $config)
+  public static function execute($config, $period)
   {
     foreach($config as $pkg => $pkg_config)
     {
       BackupLogger::indent($pkg);
 
-      if($pkg_config['period'] == $parent->period)
+      if($pkg_config['period'] == $period)
       {
-        self::executeSingle($parent, $pkg, $pkg_config);
+        self::executeSingle($pkg, $pkg_config);
       }
       else
       {
@@ -20,7 +20,7 @@ class BackupDatabase
     }
   }
 
-  public static function executeSingle(Backup &$parent, $pkg, $config)
+  public static function executeSingle($pkg, $config)
   {
     BackupLogger::append('getting database list..', 1);
 
@@ -44,7 +44,7 @@ class BackupDatabase
       BackupLogger::indent($db);
 
       BackupLogger::append("archiving..", 1);
-      $filename = $parent->prepareFilename($pkg . '-' . $db, 'sql.bz2');
+      $filename = Backup::get()->prepareFilename($pkg . '-' . $db, 'sql.bz2');
 
       switch($config['type'])
       {
@@ -52,7 +52,7 @@ class BackupDatabase
         case 'postgres': self::dumpPostgresDatabase($config, $db, $filename); break;
       }
 
-      $parent->trigger('file', array('filename' => $filename));
+      BackupEvents::trigger('file', array('filename' => $filename));
       BackupLogger::append(" ..done", 1);
 
       BackupLogger::back();

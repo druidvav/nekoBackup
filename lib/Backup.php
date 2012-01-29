@@ -1,15 +1,24 @@
 <?php
+spl_autoload_register(array('Backup', 'Autoload'));
+
 class Backup
 {
-  public $config;
-  public $period;
-  protected $callbacks;
+  // Static zone
 
-  public function __construct($config_path)
+  protected static $instance;
+
+  /**
+   * @static
+   * @param string $config_path
+   * @return Backup
+   */
+  public static function get($config_path = '')
   {
-    spl_autoload_register(array('Backup', 'Autoload'));
-
-    $this->config = Spyc::YAMLLoad($config_path);
+    if(empty(self::$instance))
+    {
+      self::$instance = new Backup(Spyc::YAMLLoad($config_path));
+    }
+    return self::$instance;
   }
 
   public static function Autoload($class)
@@ -20,39 +29,30 @@ class Backup
     }
   }
 
-  public function bind($event, $callback)
-  {
-    $this->callbacks[$event] = $callback;
-  }
+  // Object zone
 
-  public function trigger($event, $options = array())
-  {
-    if(empty($this->callbacks[$event])) return true;
+  public $config;
 
-    return call_user_func_array($this->callbacks[$event], array(&$this, $options));
+  public function __construct($config)
+  {
+    $this->config = $config;
   }
 
   public function execute($date)
   {
-    switch($period = $this->getDatePeriod($date))
+    switch($period = self::getDatePeriod($date))
     { // TODO: Issue #2
-      case 'monthly':
-        $this->execurePeriodic('monthly');
-      case 'weekly':
-        $this->execurePeriodic('weekly');
-      case 'daily':
-        $this->execurePeriodic('daily');
-        break;
+      case 'monthly': $this->executePeriodic('monthly');
+      case 'weekly':  $this->executePeriodic('weekly');
+      case 'daily':   $this->executePeriodic('daily'); break;
     }
   }
 
-  public function execurePeriodic($period)
+  public function executePeriodic($period)
   {
-    $this->period = $period;
-
     BackupLogger::append("Backup started: {$period}.", 2);
+    BackupEvents::trigger('start');
 
-    $this->trigger('start');
     foreach($this->config['schedule'] as $section)
     {
       if(empty($this->config[$section]))
@@ -65,13 +65,13 @@ class Backup
       BackupLogger::append("started", 2);
 
       $class = 'Backup' . ucfirst($section);
-      $class::execute($this, $this->config[$section]);
+      $class::execute($this->config[$section], $period);
 
       BackupLogger::append("finished", 2);
       BackupLogger::back();
     }
-    $this->trigger('finish');
 
+    BackupEvents::trigger('finish');
     BackupLogger::append("Backup finished.", 2);
 
     return true;
@@ -93,7 +93,6 @@ class Backup
       mkdir(dirname($filename));
     }
 
-    //
     if(is_file($filename))
     {
       return $this->prepareFilename($name, $ext, $postfix + 1);
@@ -102,7 +101,7 @@ class Backup
     return $filename;
   }
 
-  public function getDatePeriod($date)
+  public static function getDatePeriod($date)
   { // TODO: Issue #2
     if($date == 'initial')
     {

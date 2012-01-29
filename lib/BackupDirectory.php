@@ -1,15 +1,15 @@
 <?php
 class BackupDirectory
 {
-  public static function execute(Backup &$parent, $config)
+  public static function execute($config, $period)
   {
     foreach($config as $pkg => $pkg_config)
     {
       BackupLogger::indent($pkg);
 
-      if($pkg_config['period'] == $parent->period)
+      if($pkg_config['period'] == $period)
       {
-        BackupDirectory::executeSingle($parent, $parent->prepareFilename($pkg, 'tar.bz2'), $pkg_config);
+        BackupDirectory::executeSingle(Backup::get()->prepareFilename($pkg, 'tar.bz2'), $pkg_config);
       }
       else
       {
@@ -20,7 +20,7 @@ class BackupDirectory
     }
   }
 
-  public static function executeSingle(Backup &$parent, $file, $config)
+  public static function executeSingle($file, $config)
   {
     $included = array();
     $excluded = array();
@@ -42,7 +42,7 @@ class BackupDirectory
 
     BackupLogger::append("archiving..", 1);
     self::archive($file, $included, $excluded);
-    $parent->trigger('file', array('filename' => $file));
+    BackupEvents::trigger('file', array('filename' => $file));
     BackupLogger::append(" ..done", 1);
   }
 

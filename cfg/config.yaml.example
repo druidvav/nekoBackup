@@ -1,19 +1,11 @@
 storage: /mnt/backup/
-exclude:
-#  - /var/log/nginx
 
 schedule:
-  monthly:
-    - system
-  weekly:
-    - home
-  daily:
-    - mysql
-    - postgres
-  managed:
-    - websites
-#    - special
-    - cleanup # Must always be last!
+  - system
+  - directory
+  - subdirectory
+  - database
+  - cleanup # Must always be last!
 
 #
 # Указываем сроки хранения для директорий в формате strtotime
@@ -28,46 +20,50 @@ cleanup:
   daily:   "7 days"
 
 system:
-  include:
-    - /etc
-    - /root
-    - /usr/local
-    - /var/log
-    - /var/spool
-    - /var/www
-  exclude: [ ]
+  period: weekly
   packages: Debian
-
-home:
-  exclude:
-    - websites
-
-websites:
-  # no excludes are supported here
-  list: /home/*/websites
-  preg: "#^(/home/(.*?)/websites):#"
-  period_default: "weekly"
-  period_override:
-    h_informatika: "monthly"
-    h_druidvav_.nekoweb: "monthly"
-    h_druidvav_shinkansen.ru: "monthly"
-    h_otaku_wiki.otaku.ru: "monthly"
-
-#special:
-#  var_www:
-#    period: monthly
-#    include:
-#      - /var/www
-#    exclude: [ ]
-  
-mysql:
-  hostname: localhost
-  username: root
-  password: ##password##
-  exclude:
-    - information_schema
-
-postgres:
-  sh_user: postgres
-  exclude:
-    - postgres
+directory:
+  system:
+    period: monthly
+    include:
+      - /etc
+      - /root
+      - /usr/local
+      - /var/log
+      - /var/spool
+      - /var/www
+  var_www:
+    period: monthly
+    include:
+      - /var/www
+subdirectory:
+  home:
+    period: weekly
+    base: /home
+    exclude:
+      - h_otaku
+    subexclude:
+      - websites
+  web:
+    base: /home|/websites
+    period_default: weekly
+    period_override:
+      h_promagic: "monthly"
+    subexclude_override:
+      h_promagic_promagic.ru:
+        - public_html/video
+database:
+  mysql:
+    type: mysql
+    period: daily
+    hostname: localhost
+    username: root
+    password: #password#
+    exclude:
+      - information_schema
+  postgres:
+    type: postgres
+    period: daily
+    sh_user: postgres
+    exclude:
+      - postgres

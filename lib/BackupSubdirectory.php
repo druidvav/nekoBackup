@@ -1,13 +1,13 @@
 <?php
 class BackupSubdirectory
 {
-  public static function execute(Backup &$parent, $config)
+  public static function execute($config, $period)
   {
     foreach($config as $pkg => $pkg_config)
     {
       BackupLogger::indent($pkg);
 
-      if($pkg_config['period'] == $parent->period)
+      if(empty($pkg_config['period']) || $pkg_config['period'] == $period)
       {
         $base = explode('|', $pkg_config['base']);
 
@@ -20,12 +20,8 @@ class BackupSubdirectory
 
           BackupLogger::indent($dir);
 
-          $override = @$pkg_config['period_override'][$dir];
-          if(!empty($override) && $override != $parent->period)
-          {
-            BackupLogger::append('skipping (' . $override . ')', 1);
-          }
-          elseif(!empty($base[1]))
+          $period_1 = @$pkg_config['period_override'][$dir] ? $pkg_config['period_override'][$dir] : @$pkg_config['period_default'];
+          if(!empty($base[1]))
           {
             foreach (self::getDirectoryList($base[0] . '/' . $dir . $base[1]) as $subdir)
             {
@@ -36,14 +32,14 @@ class BackupSubdirectory
 
               BackupLogger::indent($subdir);
 
-              $override = @$pkg_config['period_override'][$dir . '_' . $subdir];
-              if(!empty($override) && $override != $parent->period)
+              $override = @$pkg_config['period_override']["{$dir}_{$subdir}"] ? $pkg_config['period_override']["{$dir}_{$subdir}"] : $period_1;
+              if(!empty($override) && $override != $period)
               {
                 BackupLogger::append('skipping (' . $override . ')', 1);
               }
               else
               {
-                self::executeSingle($parent, array(
+                self::executeSingle(array(
                   'code' => $pkg . '-' . $dir . '-' . $subdir,
                   'base' => $base[0] . '/' . $dir . $base[1] . '/' . $subdir,
                   'exclude' => !empty($pkg_config['subexclude_override'][$dir . '_' . $subdir])
@@ -55,9 +51,13 @@ class BackupSubdirectory
               BackupLogger::back();
             }
           }
+          elseif(!empty($period_1) && $period_1 != $period)
+          {
+            BackupLogger::append('skipping (' . $period_1 . ')', 1);
+          }
           else
           {
-            self::executeSingle($parent, array(
+            self::executeSingle(array(
               'code' => $pkg . '-' . $dir,
               'base' => $base[0] . '/' . $dir,
               'exclude' => @$pkg_config['subexclude'], // TODO subexclude_override
@@ -91,8 +91,8 @@ class BackupSubdirectory
     return $list;
   }
 
-  protected static function executeSingle(Backup &$parent, $config)
+  protected static function executeSingle($config)
   {
-    BackupDirectory::executeSingle($parent, $parent->prepareFilename($config['code'], 'tar.bz2'), $config);
+    BackupDirectory::executeSingle(Backup::get()->prepareFilename($config['code'], 'tar.bz2'), $config);
   }
 }

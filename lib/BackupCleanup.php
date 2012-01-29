@@ -1,26 +1,28 @@
 <?php
 class BackupCleanup
 {
-  public static function execute(Backup &$parent, $config)
+  public static function execute($config, $period)
   {
-    $dirs = `ls {$parent->config['storage']}`;
+    $storage_dir = Backup::get()->config['storage'];
+
+    $dirs = `ls {$storage_dir}`;
     foreach(explode("\n", $dirs) as $dir)
     {
       if(empty($dir)) continue;
 
-      if(!self::checkDateDirectory($parent, $dir))
+      if(!self::checkDateDirectory($dir))
       {
         BackupLogger::append("{$dir} expired");
 
-        if(!$parent->trigger('cleanup.before', array('directory' => $dir)))
+        if(!BackupEvents::trigger('cleanup.before', array('directory' => $dir)))
         { // Error while deleting
           continue;
         }
 
-        `rm -f {$parent->config['storage']}{$dir}/*`;
-        `rmdir {$parent->config['storage']}{$dir}/`;
+        `rm -f {$storage_dir}{$dir}/*`;
+        `rmdir {$storage_dir}{$dir}/`;
 
-        $parent->trigger('cleanup.after', array('directory' => $dir));
+        BackupEvents::trigger('cleanup.after', array('directory' => $dir));
 
         BackupLogger::append($dir . ' deleted');
       }
@@ -29,21 +31,14 @@ class BackupCleanup
         BackupLogger::append("{$dir} actual");
       }
     }
-    $parent->trigger('cleanup');
+    BackupEvents::trigger('cleanup');
   }
 
-  public static function checkDateDirectory(Backup &$parent, $dir)
+  public static function checkDateDirectory($dir)
   {
     $date = strtotime($dir);
-    $period = $parent->getDatePeriod($date);
-
-    if(time() > strtotime('+' . $parent->config['cleanup'][$period], $date))
-    {
-      return false;
-    }
-    else
-    {
-      return true;
-    }
+    $period = Backup::getDatePeriod($date);
+    $config = Backup::get()->config['cleanup'];
+    return !(time() > strtotime('+' . $config[$period], $date));
   }
 }
