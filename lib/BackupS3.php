@@ -54,6 +54,10 @@ class BackupS3
           BackupLogger::append('s3 > ' . $dir . ' > removed');
         }
       }
+      else
+      {
+        BackupLogger::append('s3 > ' . $dir . ' > actual');
+      }
     }
   }
 
