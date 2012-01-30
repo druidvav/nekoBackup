@@ -26,10 +26,28 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="nbackup-s3.php" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/nbackup-s3.php">
+      <file leaf-file-name="config.yaml" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/cfg/config.yaml">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="41" column="21" selection-start="1196" selection-end="1196" vertical-scroll-proportion="0.7920455">
+            <state line="70" column="0" selection-start="1342" selection-end="1342" vertical-scroll-proportion="0.8306818">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="nbackup.php" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/nbackup.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="30" column="0" selection-start="719" selection-end="719" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="BackupDatabase.php" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/lib/BackupDatabase.php">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="129" column="0" selection-start="3471" selection-end="3471" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -50,18 +68,22 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/lib/BackupFilesystem.php" />
-        <option value="$PROJECT_DIR$/nbackup_dropbox.php" />
-        <option value="$PROJECT_DIR$/lib/Backup.php" />
-        <option value="$PROJECT_DIR$/config.yaml" />
-        <option value="$PROJECT_DIR$/nbackup-dropbox.php" />
-        <option value="$PROJECT_DIR$/lib/Dropbox/OAuth/Curl.php" />
-        <option value="$PROJECT_DIR$/cfg/s3cfg" />
         <option value="$PROJECT_DIR$/cfg/s3cfg.example" />
         <option value="$PROJECT_DIR$/cfg/s3.yaml.example" />
         <option value="$PROJECT_DIR$/cfg/s3.yaml" />
+        <option value="$PROJECT_DIR$/lib/BackupLogger.php" />
+        <option value="$PROJECT_DIR$/lib/BackupEvents.php" />
+        <option value="$PROJECT_DIR$/lib/BackupSystem.php" />
+        <option value="$PROJECT_DIR$/lib/BackupCleanup.php" />
+        <option value="$PROJECT_DIR$/lib/Backup.php" />
+        <option value="$PROJECT_DIR$/lib/BackupS3.php" />
         <option value="$PROJECT_DIR$/nbackup-s3.php" />
+        <option value="$PROJECT_DIR$/cfg/config.yaml.example" />
+        <option value="$PROJECT_DIR$/lib/BackupSubdirectory.php" />
+        <option value="$PROJECT_DIR$/lib/BackupDirectory.php" />
         <option value="$PROJECT_DIR$/nbackup.php" />
+        <option value="$PROJECT_DIR$/lib/BackupDatabase.php" />
+        <option value="$PROJECT_DIR$/cfg/config.yaml" />
       </list>
     </option>
   </component>
@@ -98,6 +120,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -126,13 +149,12 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="cfg" />
+              <option name="myItemId" value="lib" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -167,6 +189,7 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="Z:\projects\nbackup\lib" />
       <recent name="Z:\projects\nbackup\cfg" />
       <recent name="Z:\nekoweb\nbackup\lib" />
     </key>
@@ -261,7 +284,7 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32928178" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.18488944" sideWeight="0.5403315" order="1" side_tool="true" content_ui="tabs" />
       <window_info id="Remote Host" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32965687" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18443628" sideWeight="0.4519337" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18933824" sideWeight="0.67071825" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
@@ -328,58 +351,98 @@
     <breakpoint-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/cfg/s3cfg.example">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="33" column="15" selection-start="989" selection-end="989" vertical-scroll-proportion="0.6375">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cfg/s3cfg">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="9" column="15" selection-start="0" selection-end="1332" vertical-scroll-proportion="0.17386363">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/s3/s3cmd">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="1815" column="13" selection-start="83073" selection-end="83073" vertical-scroll-proportion="0.8586698">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/cfg/config.yaml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/cfg/s3.yaml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="1" column="9" selection-start="29" selection-end="29" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="1" column="9" selection-start="29" selection-end="29" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/cfg/s3.yaml.example">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="1" column="9" selection-start="20" selection-end="29" vertical-scroll-proportion="0.019318182">
+        <state line="1" column="9" selection-start="20" selection-end="29" vertical-scroll-proportion="0.019318182" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/BackupEvents.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="12" column="52" selection-start="276" selection-end="276" vertical-scroll-proportion="0.23181818" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/BackupLogger.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="14" column="16" selection-start="455" selection-end="455" vertical-scroll-proportion="0.27045456" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/BackupSystem.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="3" column="33" selection-start="60" selection-end="60" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/Spyc.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="56" column="10" selection-start="1320" selection-end="1320" vertical-scroll-proportion="0.33333334" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/BackupCleanup.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="12" column="35" selection-start="286" selection-end="286" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/Backup.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="20" column="27" selection-start="388" selection-end="388" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/BackupS3.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="35" column="41" selection-start="1004" selection-end="1004" vertical-scroll-proportion="0.6761364">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/cfg/config.yaml.example">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="16" column="8" selection-start="335" selection-end="335" vertical-scroll-proportion="0.3090909">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/BackupSubdirectory.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="51" column="13" selection-start="1945" selection-end="1945" vertical-scroll-proportion="0.6761364">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/BackupDirectory.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="61" column="4" selection-start="1581" selection-end="1581" vertical-scroll-proportion="1.1738636">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$APPLICATION_HOME_DIR$/plugins/php/lib/php.jar!/com/jetbrains/php/lang/psi/stubs/data/mysql.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="593" column="9" selection-start="20760" selection-end="20760" vertical-scroll-proportion="0.33295456">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/lib/BackupDatabase.php">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="129" column="0" selection-start="3471" selection-end="3471" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/nbackup.php">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="58" selection-start="211" selection-end="211" vertical-scroll-proportion="0.13522728">
+        <state line="30" column="0" selection-start="719" selection-end="719" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/nbackup-s3.php">
+    <entry file="file://$PROJECT_DIR$/cfg/config.yaml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="41" column="21" selection-start="1196" selection-end="1196" vertical-scroll-proportion="0.7920455">
+        <state line="70" column="0" selection-start="1342" selection-end="1342" vertical-scroll-proportion="0.8306818">
           <folding />
         </state>
       </provider>

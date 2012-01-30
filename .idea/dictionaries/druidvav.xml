@@ -7,6 +7,7 @@
       <w>preg</w>
       <w>subdir</w>
       <w>subdirs</w>
+      <w>subexclude</w>
       <w>yaml</w>
     </words>
   </dictionary>

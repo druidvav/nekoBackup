@@ -59,7 +59,7 @@ class BackupDatabase
     }
   }
 
-  protected static function getMysqlDatabaseList($config)
+  protected static function getMysqlDatabaseList(&$config)
   {
     if(!($conn = mysql_connect($config['hostname'], $config['username'], $config['password'])))
     {
@@ -76,10 +76,49 @@ class BackupDatabase
     {
       $list[] = $row['Database'];
     }
+
+    $exclude_tables = array();
+    foreach($config['exclude'] as $row)
+    {
+      $row = explode('.', $row, 2);
+      if(sizeof($row) == 2)
+      {
+        $exclude_tables[$row[0]][] = $row[1];
+      }
+    }
+
+    $config['exclude_tables'] = array();
+    foreach($exclude_tables as $db => $tables)
+    {
+      mysql_select_db($db, $conn);
+
+      foreach($tables as $table)
+      {
+        $res = mysql_query('SHOW tables like "' . mysql_real_escape_string($table) . '"', $conn);
+        while($row = mysql_fetch_array($res))
+        {
+          $config['exclude_tables'][$db][] = '--ignore-table=' . $db . '.' . $row[0];
+        }
+      }
+    }
     return $list;
   }
 
-  protected static function getPostgresDatabaseList($config)
+  protected static function dumpMysqlDatabase($config, $db, $filename)
+  {
+    if(!empty($config['exclude_tables'][$db]))
+    {
+      $config['exclude_tables'][$db] = implode(' ', $config['exclude_tables'][$db]);
+    }
+    else
+    {
+      $config['exclude_tables'][$db] = '';
+    }
+
+    `mysqldump -u {$config['username']} -p{$config['password']} -h {$config['hostname']} {$db} {$config['exclude_tables'][$db]} | bzip2 -c > "{$filename}"`;
+  }
+
+  protected static function getPostgresDatabaseList(&$config)
   {
     $list = array();
 
@@ -92,11 +131,6 @@ class BackupDatabase
     }
 
     return $list;
-  }
-
-  protected static function dumpMysqlDatabase($config, $db, $filename)
-  {
-    `mysqldump -u {$config['username']} -p{$config['password']} -h {$config['hostname']} {$db} | bzip2 -c > "{$filename}"`;
   }
 
   protected static function dumpPostgresDatabase($config, $db, $filename)

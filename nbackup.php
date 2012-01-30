@@ -6,7 +6,7 @@ echo "\n";
 
 $opts = getopt('', array('driver:', 'initial'));
 
-switch($opts['driver'])
+switch(@$opts['driver'])
 {
   case 's3':
     BackupLogger::append('Using [Amazon S3] storage driver.');
