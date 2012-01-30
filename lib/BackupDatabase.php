@@ -115,7 +115,7 @@ class BackupDatabase
       $config['exclude_tables'][$db] = '';
     }
 
-    `mysqldump -u {$config['username']} -p{$config['password']} -h {$config['hostname']} {$db} {$config['exclude_tables'][$db]} | bzip2 -c > "{$filename}"`;
+    `mysqldump -u {$config['username']} -p{$config['password']} -h {$config['hostname']} {$db} {$config['exclude_tables'][$db]} --single-transaction | bzip2 -c > "{$filename}"`;
   }
 
   protected static function getPostgresDatabaseList(&$config)
