@@ -1,0 +1,6 @@
+bucket: "dv-backup"
+directory: "dv-dev.ru"
+
+access_key:
+secret_key:
+location: eu-west-1
