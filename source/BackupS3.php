@@ -5,8 +5,38 @@ class BackupS3
 
   public static function init($config_path)
   {
-    BackupEvents::bind('file', array('BackupS3', 'uploadFile'));
-    BackupEvents::bind('cleanup', array('BackupS3', 'cleanup'));
+    if(!is_file($config_path))
+    {
+      BackupLogger::append('File "' . $config_path . '" not found');
+      die(1);
+    }
+
+    if(!is_file(S3CMD_PATH . 's3cmd'))
+    {
+      BackupLogger::append('File "' . S3CMD_PATH . 's3cmd" not found...');
+
+      if(is_file(BUNDLE_PATH . 's3cmd-1.0.1-mini.tar.gz'))
+      {
+        BackupLogger::append(' ..installing..');
+        if(!is_dir(S3CMD_PATH)) mkdir(S3CMD_PATH);
+        exec("tar -xzf " . BUNDLE_PATH . "s3cmd-1.0.1-mini.tar.gz -C " . S3CMD_PATH);
+
+        if(!is_file(S3CMD_PATH . 's3cmd'))
+        {
+          BackupLogger::append(' ..failed!');
+          die(1);
+        }
+        else
+        {
+          BackupLogger::append(' ..done!');
+        }
+      }
+      else
+      {
+        BackupLogger::append(' ..cannot install!');
+        die(1);
+      }
+    }
 
     self::$config = Spyc::YAMLLoad($config_path);
     self::$config['directory'] = "s3://" . self::$config['bucket'] . "/" . self::$config['directory'] . "/";
@@ -21,6 +51,9 @@ class BackupS3
       BackupLogger::append('File "' . CONFIG_PATH . 's3cfg" not found');
       die(1);
     }
+
+    BackupEvents::bind('file', array('BackupS3', 'uploadFile'));
+    BackupEvents::bind('cleanup', array('BackupS3', 'cleanup'));
   }
 
   public static function uploadFile($options)

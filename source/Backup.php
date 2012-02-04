@@ -16,16 +16,16 @@ class Backup
   {
     if(empty(self::$instance))
     {
-      self::$instance = new Backup(Spyc::YAMLLoad($config_path));
+      self::$instance = new Backup($config_path);
     }
     return self::$instance;
   }
 
   public static function Autoload($class)
   {
-    if(file_exists(dirname(__FILE__) . '/' . $class . '.php'))
+    if(file_exists(SOURCE_PATH . $class . '.php'))
     {
-      include_once(dirname(__FILE__) . '/' . $class . '.php');
+      include_once(SOURCE_PATH . $class . '.php');
     }
   }
 
@@ -33,9 +33,15 @@ class Backup
 
   public $config;
 
-  public function __construct($config)
+  public function __construct($config_path)
   {
-    $this->config = $config;
+    if(!is_file($config_path))
+    {
+      BackupLogger::append('File "' . $config_path . '" not found');
+      die(1);
+    }
+
+    $this->config = Spyc::YAMLLoad($config_path);
   }
 
   public function execute($date)
