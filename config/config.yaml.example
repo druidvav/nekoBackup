@@ -1,69 +1,104 @@
+#
+#  ## Пример файла конфигурации nekoBackup
+#
+# Все директории необходимо указывать БЕЗ слеша на конце, например /etc
+#
+# Для обозначения периодичности используются ключевые слова:
+# * monthly - первый понедельник месяца
+# * weekly  - понедельник каждой недели
+# * daily   - каждый день
+#
+
+# Директория для сохранения бекапов
 storage: /mnt/backup/
 
+#
+# ## Порядок исполнения операций
+#
+# Если какая-то из операций не используется, закомментируйте
+# соответствующую строку.
+#
 schedule:
   - system
   - directory
   - subdirectory
   - database
-  - cleanup # Must always be last!
+  - cleanup # всегда должна быть в конце!
 
 #
-# Указываем сроки хранения для директорий в формате strtotime
+# ## Сроки хранения для директорий в формате strtotime
 #
-# monthly - первое число месяца
-# weekly  - понедельник каждой недели (кроме monthly)
-# daily   - каждый день (кроме monthly и weekly)
+# Срок указывается в соответствии с датой бекапа
+# * monthly - первый понедельник месяца
+# * weekly  - понедельник каждой недели (кроме первого)
+# * daily   - каждый день (кроме понедельников)
 #
 cleanup:
-  monthly: "1 month"
-  weekly:  "4 weeks"
-  daily:   "7 days"
+  monthly: "1 month" # Ежемесячные бекапы храним 1 месяц
+  weekly:  "4 weeks" # Еженедельные храним 4 недели
+  daily:   "7 days"  # Ежедневные храним 7 дней
 
+#
+# ## Сохранение информации об установленных в системе пакетах
+#
 system:
-  period: weekly
-  packages: Debian
+  period:   weekly # Периодичность
+  packages: Debian # Дистрибутив (На данный момент поддерживается только Debian)
+
+#
+# ## Простое архивирование директорий
+#
 directory:
-  system:
-    period: monthly
-    include:
+  archive1:                   # Название архива (применяется для имени файла)
+    period: monthly           # Периодичность
+    include:                  # Массив директорий, которые будут включены в архив
       - /etc
       - /root
-      - /usr/local
+    exclude:                  # Массив директорий, которые будут исключены из архива
+      - /root/backup
+
+  archive2:                   # Название архива (применяется для имени файла)
+    period: monthly           # Периодичность
+    include:                  # Массив директорий, которые будут включены в архив
+      - /var
+    exclude:                  # Массив директорий, которые будут исключены из архива
       - /var/log
-      - /var/spool
-      - /var/www
-  var_www:
-    period: monthly
-    include:
-      - /var/www
+
+#
+# ## Архивирование поддиректорий
+#
 subdirectory:
-  home:
-    period: weekly
-    base: /home
-    exclude:
-      - h_otaku
-    subexclude:
-      - websites
-  web:
-    base: /home|/websites
-    period_default: weekly
-    period_override:
-      h_promagic: "monthly"
-    subexclude_override:
-      h_promagic_promagic.ru:
-        - public_html/video
+  archive3:                   # Название архива (применяется для имени файла)
+    period: weekly            # Периодичность (если не указано, то нужно указать периодичность для поддиректорий)
+    base: /home               # Базовая директория (поддиректории которой будут архивироваться)
+    exclude:                  # Исключения (массив директорий)
+      - otaku
+    subexclude:               # Какие поддиректории исключить из архива (массив)
+      - websites              #   В нашем примере исключает /home/*/websites
+
+  archive4:                   # Название архива (применяется для имени файла)
+    base: /home|/websites     # Базовая директория (разделена символом |, в нашем примере будут архивироваться директории /home/*/websites/* )
+    period_default: weekly    # Периодичность для директорий у которых она не указана явно
+    period_override:          # Явное указание периодичности для директорий
+      otaku: monthly          #   Указывает периодичность для /home/otaku/websites/*
+      otaku_otaku.ru: daily   #   Указывает периодичность для /home/otaku/websites/otaku.ru
+
+#
+# ## Архивирование баз данных
+#
 database:
-  mysql:
-    type: mysql
-    period: daily
-    hostname: localhost
+  database1:                   # Название архива (применяется для имени файла)
+    type: mysql                # Тип базы данных (mysql или postgres)
+    period: daily              # Периодичность
+    hostname: localhost        # Данные для доступа к базе (только mysql)
     username: root
-    password: #password#
-    exclude:
-      - information_schema
-  postgres:
-    type: postgres
-    period: daily
-    sh_user: postgres
-    exclude:
+    password:
+    exclude:                   # Базы данных и таблицы, которые необходимо исключить
+      - database
+      - database.table
+  database2:                   # Название архива (применяется для имени файла)
+    type: postgres             # Тип базы данных (mysql или postgres)
+    period: daily              # Периодичность
+    sh_user: postgres          # Пользователь постгреса (нужен для sudo su - username, из-под которого будет делаться бекап)
+    exclude:                   # Базы данных, которые необходимо исключить (таблицы не поддерживаются)
       - postgres

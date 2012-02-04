@@ -7,7 +7,7 @@ define('LOG_PATH',    '/etc/nbackup.log');
 
 include_once(SOURCE_PATH . 'Backup.php');
 
-echo "  >>  nekoBackup 1.1b2 by druidvav  << \n";
+echo "  >>  nekoBackup 1.1rc1 by druidvav  << \n";
 echo "\n";
 
 $opts = getopt('', array('driver:', 'initial', 'install'));
