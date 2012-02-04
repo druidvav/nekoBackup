@@ -10,7 +10,18 @@ include_once(SOURCE_PATH . 'Backup.php');
 echo "  >>  nekoBackup 1.1b2 by druidvav  << \n";
 echo "\n";
 
-$opts = getopt('', array('driver:', 'initial'));
+$opts = getopt('', array('driver:', 'initial', 'install'));
+
+if(isset($opts['install']))
+{
+  echo "Installing crontab...";
+
+  $line = "0 3 * * * php " . __FILE__ . " --driver={$opts['driver']}";
+  `(crontab -l; echo "{$line}") | crontab -`;
+
+  echo " done.\n";
+  exit;
+}
 
 switch(@$opts['driver'])
 {
