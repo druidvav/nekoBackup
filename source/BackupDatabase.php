@@ -35,7 +35,7 @@ class BackupDatabase
 
     foreach($list as $db)
     {
-      if(in_array($db, $config['exclude']))
+      if(!empty($config['exclude']) && in_array($db, $config['exclude']))
       {
         BackupLogger::append("$db excluded", 1);
         continue;
@@ -78,7 +78,7 @@ class BackupDatabase
     }
 
     $exclude_tables = array();
-    foreach($config['exclude'] as $row)
+    if(!empty($config['exclude'])) foreach($config['exclude'] as $row)
     {
       $row = explode('.', $row, 2);
       if(sizeof($row) == 2)
