@@ -44,7 +44,7 @@ class BackupDatabase
       BackupLogger::indent($db);
 
       BackupLogger::append("archiving..", 1);
-      $filename = Backup::get()->prepareFilename($pkg . '-' . $db, 'sql.bz2');
+      $filename = Backup::get()->prepareFilename($pkg . '-' . $db, 'sql.gz');
 
       switch($config['type'])
       {
@@ -115,7 +115,7 @@ class BackupDatabase
       $config['exclude_tables'][$db] = '';
     }
 
-    `mysqldump -u {$config['username']} -p{$config['password']} -h {$config['hostname']} {$db} {$config['exclude_tables'][$db]} --single-transaction | bzip2 -c > "{$filename}"`;
+    `mysqldump -u {$config['username']} -p{$config['password']} -h {$config['hostname']} {$db} {$config['exclude_tables'][$db]} | gzip -c > "{$filename}"`; // --single-transaction
   }
 
   protected static function getPostgresDatabaseList(&$config)
