@@ -135,6 +135,6 @@ class BackupDatabase
 
   protected static function dumpPostgresDatabase($config, $db, $filename)
   {
-    `su - {$config['sh_user']} -c "pg_dump -c --column-inserts --inserts {$db}" | bzip2 -c > "{$filename}"`;
+    `su - {$config['sh_user']} -c "pg_dump -c --column-inserts --inserts {$db}" | gzip -c > "{$filename}"`;
   }
 }

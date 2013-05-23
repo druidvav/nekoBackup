@@ -93,6 +93,6 @@ class BackupSubdirectory
 
   protected static function executeSingle($config)
   {
-    BackupDirectory::executeSingle(Backup::get()->prepareFilename($config['code'], 'tar.bz2'), $config);
+    BackupDirectory::executeSingle(Backup::get()->prepareFilename($config['code'], 'tar.gz'), $config);
   }
 }

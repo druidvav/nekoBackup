@@ -9,7 +9,7 @@ class BackupDirectory
 
       if($pkg_config['period'] == $period)
       {
-        BackupDirectory::executeSingle(Backup::get()->prepareFilename($pkg, 'tar.bz2'), $pkg_config);
+        BackupDirectory::executeSingle(Backup::get()->prepareFilename($pkg, 'tar.gz'), $pkg_config);
       }
       else
       {
@@ -59,7 +59,6 @@ class BackupDirectory
       if(!empty($dir)) $cl_exclude .= ' --exclude="' . $dir . '"';
     }
 
-    return `tar {$cl_exclude} -cjpf {$archive} {$cl_include} 2>&1`;
-    //echo "tar {$cl_exclude} -cjpf {$archive} {$cl_include} 2>&1" . "\n";
+    return `tar {$cl_exclude} -czpf {$archive} {$cl_include} 2>&1`;
   }
 }

@@ -1,13 +1,15 @@
 <?php
 define('CONFIG_PATH', dirname(__FILE__) . '/config/');
 define('SOURCE_PATH', dirname(__FILE__) . '/source/');
+define('VENDOR_PATH', dirname(__FILE__) . '/vendor/');
 define('BUNDLE_PATH', dirname(__FILE__) . '/bundle/');
 define('S3CMD_PATH',  dirname(__FILE__) . '/bundle/s3cmd/');
-define('LOG_PATH',    '/etc/nbackup.log');
+define('LOG_PATH',    '/var/log/nbackup.log');
 
 include_once(SOURCE_PATH . 'Backup.php');
+include_once(VENDOR_PATH . 'autoload.php');
 
-echo "  >>  nekoBackup 1.1rc1 by druidvav  << \n";
+echo "  >>  nekoBackup 1.2rc1 by druidvav  << \n";
 echo "\n";
 
 $opts = getopt('', array('driver:', 'initial', 'install'));
