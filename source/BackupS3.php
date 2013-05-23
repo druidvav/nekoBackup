@@ -15,11 +15,11 @@ class BackupS3
     {
       BackupLogger::append('File "' . S3CMD_PATH . 's3cmd" not found...');
 
-      if(is_file(BUNDLE_PATH . 's3cmd-1.1.0-mini.tar.gz'))
+      if(is_file(BUNDLE_PATH . 's3cmd-1.5.0a3-mini.tar.gz'))
       {
         BackupLogger::append(' ..installing..');
         if(!is_dir(S3CMD_PATH)) mkdir(S3CMD_PATH);
-        exec("tar -xzf " . BUNDLE_PATH . "s3cmd-1.1.0-mini.tar.gz -C " . S3CMD_PATH);
+        exec("tar -xzf " . BUNDLE_PATH . "s3cmd-1.5.0a3-mini.tar.gz -C " . S3CMD_PATH);
 
         if(!is_file(S3CMD_PATH . 's3cmd'))
         {
