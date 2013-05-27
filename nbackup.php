@@ -18,7 +18,7 @@ if(isset($opts['install']))
 {
   echo "Installing crontab...";
 
-  $line = "0 3 * * * php " . __FILE__ . " --driver={$opts['driver']}";
+  $line = "0 3 * * * php " . __FILE__ . " --driver={$opts['driver']} &> /dev/null\n";
   `(crontab -l; echo "{$line}") | crontab -`;
 
   echo " done.\n";
