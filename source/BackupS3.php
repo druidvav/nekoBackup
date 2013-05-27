@@ -43,8 +43,8 @@ class BackupS3
       ->setSource($options['filename'])
       ->setBucket(self::$config['bucket'])
       ->setKey($remote_file)
-      ->setConcurrency(5)
-      ->setMinPartSize(100*1024*1024) // 100 Mb
+      ->setConcurrency(4)
+      ->setMinPartSize(50*1024*1024) // 50 Mb
       ->build();
 
     BackupLogger::append('uploading file..', 1);
