@@ -1,6 +1,8 @@
 <?php
 spl_autoload_register(array('Backup', 'Autoload'));
 
+use \Symfony\Component\Yaml\Yaml;
+
 class Backup
 {
   // Static zone
@@ -41,7 +43,7 @@ class Backup
       die(1);
     }
 
-    $this->config = Spyc::YAMLLoad($config_path);
+    $this->config = Yaml::parse($config_path);
   }
 
   public function execute($date)

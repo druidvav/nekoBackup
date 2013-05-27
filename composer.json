@@ -1,5 +1,6 @@
 {
   "require": {
-    "aws/aws-sdk-php": "2.3.*@dev"
+    "aws/aws-sdk-php": "2.3.*@dev",
+    "symfony/yaml": "2.3.x-dev"
   }
 }

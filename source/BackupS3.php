@@ -1,8 +1,8 @@
 <?php
 use Aws\S3\S3Client;
-use Aws\Common\Enum\Size;
 use Aws\Common\Exception\MultipartUploadException;
 use Aws\S3\Model\MultipartUpload\UploadBuilder;
+use \Symfony\Component\Yaml\Yaml;
 
 class BackupS3
 {
@@ -21,7 +21,7 @@ class BackupS3
       die(1);
     }
 
-    self::$config = Spyc::YAMLLoad($config_path);
+    self::$config = Yaml::parse($config_path);
     self::$config['directory'] = self::$config['directory'] . "/";
 
     self::$client = S3Client::factory(array(
