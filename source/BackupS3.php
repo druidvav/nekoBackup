@@ -33,7 +33,7 @@ class BackupS3
     BackupEvents::bind('cleanup', array('BackupS3', 'cleanup'));
   }
 
-  public static function uploadFile($options)
+  public static function uploadFile($options, $retries = 3)
   {
     $storage_dir = Backup::get()->config['storage'];
     $remote_file = self::$config['directory'] . str_replace($storage_dir, '', $options['filename']);
@@ -55,9 +55,15 @@ class BackupS3
       BackupLogger::append('removing local file..', 1);
       unlink($options['filename']);
     } catch (MultipartUploadException $e) {
-      $uploader->abort();
-      BackupLogger::append('failed: ' . $e->getMessage(), 1);
-      exit;
+      if($retries > 0) {
+        BackupLogger::append('failed: ' . $e->getMessage(), 1);
+        BackupLogger::append('retrying...', 1);
+        return self::uploadFile($options, $retries - 1);
+      } else {
+        $uploader->abort();
+        BackupLogger::append('failed: ' . $e->getMessage(), 1);
+        exit;
+      }
     }
 
     return true;
@@ -107,4 +113,3 @@ class BackupS3
     }
   }
 }
-
