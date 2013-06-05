@@ -76,39 +76,45 @@ class BackupS3
       'Prefix' => self::$config['directory']
     ));
 
+    $directories = array();
     foreach($iterator as $object)
     {
-      if($object['Size'] != 0)
-      { // Не директория
+      $dirs = preg_replace('#^' . preg_quote(self::$config['directory']) . '#', '', $object['Key']);
+      $dirs = explode('/', $dirs);
+      $directories[$dirs[0]] = $dirs[0];
+    }
+
+    foreach($directories as $dir)
+    {
+      if(BackupCleanup::checkDateDirectory($dir))
+      {
+        BackupLogger::append('s3 > ' . $dir . ' > actual');
         continue;
       }
 
-      $dir = basename(trim($object['Key']));
+      $objects = self::$client->listObjects(array(
+        'Bucket' => self::$config['bucket'],
+        'Prefix' => self::$config['directory'] . $dir//  . '/'
+      ));
 
-      if(!BackupCleanup::checkDateDirectory($dir))
+      if(empty($objects['Contents']))
       {
-        $objects = self::$client->listObjects(array(
-          'Bucket' => self::$config['bucket'],
-          'Prefix' => self::$config['directory'] . $dir . '/'
-        ));
+        BackupLogger::append('s3 > ' . $dir . ' > WTF');
+        continue;
+      }
 
-        $result = self::$client->deleteObjects(array(
-          'Bucket' => self::$config['bucket'],
-          'Objects' => $objects['Contents']
-        ));
+      $result = self::$client->deleteObjects(array(
+        'Bucket' => self::$config['bucket'],
+        'Objects' => $objects['Contents']
+      ));
 
-        if(sizeof($objects['Contents']) == sizeof($result['Deleted']))
-        {
-          BackupLogger::append('s3 > ' . $dir . ' > removed');
-        }
-        else
-        {
-          BackupLogger::append('s3 > ' . $dir . ' > error while removing!');
-        }
+      if(sizeof($objects['Contents']) == sizeof($result['Deleted']))
+      {
+        BackupLogger::append('s3 > ' . $dir . ' > removed');
       }
       else
       {
-        BackupLogger::append('s3 > ' . $dir . ' > actual');
+        BackupLogger::append('s3 > ' . $dir . ' > error while removing!');
       }
     }
   }
