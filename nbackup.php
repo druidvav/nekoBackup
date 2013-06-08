@@ -29,7 +29,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 
 $dispatcher = new EventDispatcher();
 
-$basic = new \nekoBackup\BasicDriver\Driver($dispatcher, Config::get('config'));
+$basic = new \nekoBackup\BasicDriver\Driver($dispatcher);
 
 switch(@$opts['driver'])
 {

@@ -6,6 +6,8 @@ use Symfony\Component\Finder\Finder;
 
 class SubdirectoryAction extends DirectoryAction
 {
+  protected $action = 'subdirectory';
+
   public function execute($period)
   {
     foreach($this->getActionConfig() as $section => $sectionConfig) {

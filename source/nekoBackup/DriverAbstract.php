@@ -8,19 +8,13 @@ abstract class DriverAbstract
   protected $config;
   protected $dispatcher;
 
-  public function __construct(EventDispatcher $dispatcher, $config = null)
+  public function __construct(EventDispatcher $dispatcher)
   {
     $this->dispatcher = $dispatcher;
-    $this->config = $config;
   }
 
   public function getDispatcher()
   {
     return $this->dispatcher;
-  }
-
-  public function getConfig()
-  {
-    return $this->config;
   }
 }

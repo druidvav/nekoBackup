@@ -5,6 +5,8 @@ use nekoBackup\BasicDriver\Action;
 
 class SystemAction extends Action
 {
+  protected $action = 'system';
+
   public function execute($period)
   {
     $config = $this->getActionConfig();

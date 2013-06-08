@@ -5,15 +5,20 @@ use Symfony\Component\Yaml\Yaml;
 
 class Config
 {
+  protected static $cached;
+
   public static function get($file)
   {
-    $configPath = CONFIG_PATH . $file . '.yaml';
+    if(empty(self::$cached[$file])) {
+      $configPath = CONFIG_PATH . $file . '.yaml';
 
-    if(!is_file($configPath)) {
-      BackupLogger::append('File "' . $configPath . '" not found');
-      die(1);
+      if(!is_file($configPath)) {
+        BackupLogger::append('File "' . $configPath . '" not found');
+        die(1);
+      }
+
+      self::$cached[$file] = Yaml::parse($configPath);
     }
-
-    return Yaml::parse($configPath);
+    return self::$cached[$file];
   }
 }

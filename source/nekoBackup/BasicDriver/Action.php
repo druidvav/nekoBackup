@@ -1,33 +1,29 @@
 <?php
 namespace nekoBackup\BasicDriver;
 
+use nekoBackup\Config;
+use nekoBackup\DriverAbstract;
 use nekoBackup\BackupLogger;
 
 abstract class Action
 {
   protected $driver;
-  private $config;
-  private $actionConfig;
+  protected $action;
 
-  public function __construct(Driver $driver)
+  public function __construct(DriverAbstract $driver)
   {
     $this->driver = $driver;
-    $this->config = $driver->getConfig();
-  }
-
-  public function setActionConfig($config)
-  {
-    return $this->actionConfig = $config;
   }
 
   protected function getActionConfig()
   {
-    return $this->actionConfig;
+    $config = Config::get('config');
+    return $config[$this->action];
   }
 
   protected function getGlobalConfig()
   {
-    return $this->config;
+    return Config::get('config');
   }
 
   protected function dispatcher()
@@ -52,8 +48,10 @@ abstract class Action
 
   protected function prepareFilename($name, $ext = '', $postfix = '')
   {
+    $config = $this->getGlobalConfig();
+
     $filename =
-      $this->config['storage'] // Storage path
+      $config['storage'] // Storage path
         . date('Ymd/') // Date directory
         . date('Ymd.His.') // Datetime filename prefix
         . $name // Requested filename

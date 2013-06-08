@@ -8,6 +8,8 @@ use nekoBackup\BasicDriver\Action;
 
 class CleanupAction extends Action
 {
+  protected $action = 'cleanup';
+
   public function execute($period)
   {
     $config = $this->getGlobalConfig();

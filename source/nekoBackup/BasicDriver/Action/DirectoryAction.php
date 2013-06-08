@@ -6,6 +6,8 @@ use nekoBackup\Event\FileReady as FileReadyEvent;
 
 class DirectoryAction extends Action
 {
+  protected $action = 'directory';
+
   public function execute($period)
   {
     foreach($this->getActionConfig() as $section => $sectionConfig) {

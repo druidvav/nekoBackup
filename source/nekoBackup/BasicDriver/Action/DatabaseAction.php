@@ -8,6 +8,8 @@ use nekoBackup\Event\FileReady as FileReadyEvent;
 
 class DatabaseAction extends Action
 {
+  protected $action = 'database';
+
   public function execute($period)
   {
     foreach($this->getActionConfig() as $pkg => $pkg_config) {
