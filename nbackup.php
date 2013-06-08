@@ -35,7 +35,7 @@ switch(@$opts['driver'])
 {
   case 's3':
     nekoBackup\BackupLogger::append('Using [Amazon S3] storage driver.');
-    $s3driver = new nekoBackup\S3Driver\Driver($dispatcher, Config::get('s3'));
+    $s3driver = new nekoBackup\S3Driver\Driver($dispatcher);
     break;
 }
 

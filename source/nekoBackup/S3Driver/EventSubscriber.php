@@ -1,18 +1,16 @@
 <?php
 namespace nekoBackup\S3Driver;
 
+use nekoBackup\EventSubscriberAbstract;
 use nekoBackup\Event\Action as ActionEvent;
 use nekoBackup\Event\FileReady as FileReadyEvent;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-class EventSubscriber implements EventSubscriberInterface
+class EventSubscriber extends EventSubscriberAbstract
 {
+  /**
+   * @var $driver Driver
+   */
   protected $driver;
-
-  public function __construct(Driver $driver)
-  {
-    $this->driver = $driver;
-  }
 
   public static function getSubscribedEvents()
   {

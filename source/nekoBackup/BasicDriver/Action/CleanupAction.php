@@ -2,8 +2,6 @@
 namespace nekoBackup\BasicDriver\Action;
 
 use nekoBackup\Backup;
-use nekoBackup\BackupLogger;
-
 use nekoBackup\BasicDriver\Action;
 
 class CleanupAction extends Action

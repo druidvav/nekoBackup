@@ -16,7 +16,7 @@ class DirectoryAction extends Action
       if($sectionConfig['period'] == $period) {
         $this->archiveSection(
           $this->prepareFilename($section, 'tar.gz'),
-          @$sectionConfig['base'], $sectionConfig['include'], $sectionConfig['exclude']
+          @$sectionConfig['base'], @$sectionConfig['include'], @$sectionConfig['exclude']
         );
       } else {
         $this->write("skipping ({$sectionConfig['period']})");
