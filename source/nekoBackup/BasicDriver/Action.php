@@ -3,7 +3,7 @@ namespace nekoBackup\BasicDriver;
 
 use nekoBackup\Config;
 use nekoBackup\DriverAbstract;
-use nekoBackup\BackupLogger;
+use nekoBackup\Logger;
 
 abstract class Action
 {
@@ -33,17 +33,17 @@ abstract class Action
 
   protected function write($string)
   {
-    BackupLogger::append($string);
+    Logger::append($string);
   }
 
   protected function indent($string)
   {
-    BackupLogger::indent($string);
+    Logger::indent($string);
   }
 
   protected function back()
   {
-    BackupLogger::back();
+    Logger::back();
   }
 
   protected function prepareFilename($name, $ext = '', $postfix = '')

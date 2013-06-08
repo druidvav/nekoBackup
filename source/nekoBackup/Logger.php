@@ -1,7 +1,7 @@
 <?php
 namespace nekoBackup;
 
-class BackupLogger
+class Logger
 {
   protected static $log_indent = array();
 
