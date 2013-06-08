@@ -7,44 +7,30 @@ use nekoBackup\Event\Action as ActionEvent;
 
 class Backup
 {
-  // Static zone
-
   protected static $instance;
 
   /**
    * @static
-   * @param string $config_path
+   * @param string $config
    * @return Backup
    */
-  public static function get($config_path = '')
+  public static function get($config = '')
   {
-    if(empty(self::$instance))
-    {
-      self::$instance = new Backup($config_path);
+    if(empty(self::$instance)) {
+      self::$instance = new Backup($config);
     }
     return self::$instance;
   }
 
-  // Object zone
-
   public $config;
 
-  public function __construct($config_path)
+  public function __construct($config)
   {
-    if(!is_file($config_path))
-    {
-      BackupLogger::append('File "' . $config_path . '" not found');
-      die(1);
-    }
-
-    $this->config = Yaml::parse($config_path);
+    $this->config = $config;
   }
 
   public function execute($date)
   {
-    global $dispatcher;
-    $basic = new \nekoBackup\BasicDriver\Driver($dispatcher);
-
     switch($period = self::getDatePeriod($date))
     { // TODO: Issue #2
       case 'monthly': $this->executePeriodic('monthly');
@@ -58,11 +44,6 @@ class Backup
     BackupLogger::append("Backup started: {$period}.", 2);
 
     foreach($this->config['schedule'] as $section) {
-      if(empty($this->config[$section])) {
-        BackupLogger::append("Unknown section '{$section}'", 3);
-        continue;
-      }
-
       BackupLogger::indent($section);
       BackupLogger::append("started", 2);
 

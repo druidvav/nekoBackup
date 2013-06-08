@@ -1,57 +1,35 @@
 <?php
 namespace nekoBackup\BasicDriver;
 
+use nekoBackup\DriverAbstract;
 use nekoBackup\Event\FileReady as FileReadyEvent;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
-use nekoBackup\Backup;
-
-class Driver
+class Driver extends DriverAbstract
 {
-  protected $config;
-  protected $dispatcher;
-
-  public function __construct(EventDispatcher $dispatcher)
+  public function __construct(EventDispatcher $dispatcher, $config)
   {
+    parent::__construct($dispatcher, $config);
     $dispatcher->addSubscriber(new EventSubscriber($this));
-    $this->dispatcher = $dispatcher;
-    $this->config = Backup::get()->config;
   }
 
-  public function getDispatcher()
+  public function executeAction($action, $period)
   {
-    return $this->dispatcher;
-  }
+    switch($action) {
+      case 'system':       $actionObject = new Action\SystemAction($this); break;
+      case 'directory':    $actionObject = new Action\DirectoryAction($this); break;
+      case 'subdirectory': $actionObject = new Action\SubdirectoryAction($this); break;
+      case 'database':     $actionObject = new Action\DatabaseAction($this); break;
+      case 'cleanup':      $actionObject = new Action\CleanupAction($this); break;
+      default: return;
+    }
 
-  public function getConfig()
-  {
-    return $this->config;
+    $actionObject->setActionConfig($this->config[$action]);
+    $actionObject->execute($period);
   }
 
   public function reportFileReady($filename)
   {
     $this->getDispatcher()->dispatch('nekobackup.file-ready', new FileReadyEvent($filename));
-  }
-
-  public function prepareFilename($name, $ext = '', $postfix = '')
-  {
-    $filename =
-      $this->config['storage'] // Storage path
-        . date('Ymd/') // Date directory
-        . date('Ymd.His.') // Datetime filename prefix
-        . $name // Requested filename
-        . ($postfix ? '.' . $postfix : '') // Postfix
-        . '.' . $ext; // Extension
-
-    // Creating directory if it doesn't exist
-    if(!is_dir(dirname($filename))) {
-      mkdir(dirname($filename));
-    }
-
-    if(is_file($filename)) {
-      return $this->prepareFilename($name, $ext, $postfix + 1);
-    }
-
-    return $filename;
   }
 }

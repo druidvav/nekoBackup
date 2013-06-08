@@ -1,96 +1,80 @@
 <?php
 namespace nekoBackup\BasicDriver\Action;
 
-use nekoBackup\BackupLogger;
-
 use nekoBackup\BasicDriver\Action;
+use Symfony\Component\Finder\Finder;
 
 class SubdirectoryAction extends DirectoryAction
 {
-  public function execute($config, $period)
+  public function execute($period)
   {
-    foreach($config as $pkg => $pkg_config) {
-      BackupLogger::indent($pkg);
+    foreach($this->getActionConfig() as $section => $sectionConfig) {
+      $this->indent($section);
 
-      if(empty($pkg_config['period']) || $pkg_config['period'] == $period) {
-        $pkg_config['pkg'] = $pkg;
-        $this->executeSection($pkg_config, $period);
+      if(empty($sectionConfig['period']) || $sectionConfig['period'] == $period) {
+        $sectionConfig['section'] = $section;
+        $this->archiveSection($sectionConfig, $period);
       } else {
-        BackupLogger::append("skipping ({$pkg_config['period']})", 1);
+        $this->write("skipping ({$sectionConfig['period']})", 1);
       }
 
-      BackupLogger::back();
+      $this->back();
     }
   }
 
-  protected function executeSection($config, $period)
+  protected function archiveSection($sectionConfig, $period)
   {
-    $base = explode('|', $config['base']);
+    $finder = new Finder();
+    $finder->directories()->in($sectionConfig['base'])->depth(0);
+    foreach ($finder as $file) {
+      $directory = $file->getRealpath();
 
-    foreach($this->getDirectoryList($base[0]) as $dir) {
-      if(!empty($config['exclude']) && in_array($dir, $config['exclude'])) {
-        continue;
+      preg_match('#^' . str_replace('\\*', '(.*?)', preg_quote($sectionConfig['base'] . '/*')) . '$#', $directory, $match);
+      unset($match[0]);
+
+      $sectionId = '';
+      $checkIds = array();
+      foreach($match as $subdir) {
+        $sectionId .= ($sectionId == '' ? '' : '_') . $subdir;
+        $checkIds[] = $sectionId;
       }
 
-      BackupLogger::indent($dir);
+      if(!empty($sectionConfig['exclude'])) {
+        $excluded = false;
+        foreach($checkIds as $checkId) {
+          if(in_array($checkId, $sectionConfig['exclude'])) {
+            $excluded = true;
+            break;
+          }
+        }
+        if($excluded) {
+          continue;
+        }
+      }
 
-      $period_1 = @$config['period_override'][$dir] ? $config['period_override'][$dir] : @$config['period_default'];
-      if(!empty($base[1])) {
-        $this->executeSubsection($base, $config, $period, $dir, $period_1);
-      } elseif(!empty($period_1) && $period_1 != $period) {
-        BackupLogger::append('skipping (' . $period_1 . ')', 1);
+      $this->indent(implode(' > ', $match));
+
+      $sectionPeriod = @$sectionConfig['period_default'];
+      foreach($checkIds as $checkId) {
+        if(!empty($sectionConfig['period_override'][$checkId])) {
+          $sectionPeriod = $sectionConfig['period_override'][$checkId];
+        }
+      }
+
+      if(!empty($sectionPeriod) && $sectionPeriod != $period) {
+        $this->write('skipping (' . $sectionPeriod . ')', 1);
       } else {
-        $this->executeSingle(array(
-          'code' => $config['pkg'] . '-' . $dir,
-          'base' => $base[0] . '/' . $dir,
-          'exclude' => @$config['subexclude'], // TODO subexclude_override
-        ));
+        parent::archiveSection(
+          $this->prepareFilename($sectionConfig['section'] . '-' . implode('-', $match), 'tar.gz'),
+          $directory, array(), @$sectionConfig['subexclude']
+        );
       }
 
-      BackupLogger::back();
+      $this->back();
     }
   }
 
-  protected function executeSubsection($base, $config, $period, $dir, $period_1)
-  {
-    foreach ($this->getDirectoryList($base[0] . '/' . $dir . $base[1]) as $subdir) {
-      if(!empty($config['exclude']) && in_array($dir . '_' . $subdir, $config['exclude'])) {
-        continue;
-      }
-
-      BackupLogger::indent($subdir);
-
-      $override = @$config['period_override']["{$dir}_{$subdir}"] ? $config['period_override']["{$dir}_{$subdir}"] : $period_1;
-      if(!empty($override) && $override != $period) {
-        BackupLogger::append('skipping (' . $override . ')', 1);
-      } else {
-        $this->executeSingle(array(
-          'code' => $config['pkg'] . '-' . $dir . '-' . $subdir,
-          'base' => $base[0] . '/' . $dir . $base[1] . '/' . $subdir,
-          'exclude' => !empty($config['subexclude_override'][$dir . '_' . $subdir])
-            ? $config['subexclude_override'][$dir . '_' . $subdir]
-            : @$config['subexclude'], // TODO Subexclude override for $dir
-        ));
-      }
-
-      BackupLogger::back();
-    }
-  }
-
-  protected function getDirectoryList($base)
-  {
-    $list = array();
-    if(is_dir($base)) foreach(scandir($base) as $dir) {
-      if($dir == '.' || $dir == '..') {
-        continue; // Если системная директория или директория исключена - пропускаем
-      }
-      $list[] = $dir;
-    }
-    return $list;
-  }
-
-  protected function executeSingle($config)
-  {
-    $this->archiveDirectory($this->prepareFilename($config['code'], 'tar.gz'), $config);
-  }
+//    'exclude' => !empty($config['subexclude_override'][$dir . '_' . $subdir])
+//      ? $config['subexclude_override'][$dir . '_' . $subdir]
+//      : @$config['subexclude'], // TODO Subexclude override for $dir
 }

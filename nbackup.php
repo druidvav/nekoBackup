@@ -24,26 +24,24 @@ $opts = getopt('', array('driver:', 'initial', 'install'));
 //  exit;
 //}
 
+use nekoBackup\Config;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 $dispatcher = new EventDispatcher();
+
+$basic = new \nekoBackup\BasicDriver\Driver($dispatcher, Config::get('config'));
 
 switch(@$opts['driver'])
 {
   case 's3':
     nekoBackup\BackupLogger::append('Using [Amazon S3] storage driver.');
-
-    $driver = new nekoBackup\S3Driver\Driver(CONFIG_PATH . 's3.yaml', $dispatcher);
-    break;
-  default:
-    nekoBackup\BackupLogger::append('Using default storage driver.');
+    $s3driver = new nekoBackup\S3Driver\Driver($dispatcher, Config::get('s3'));
     break;
 }
 
-if(isset($opts['initial']))
-{
+if(isset($opts['initial'])) {
   nekoBackup\BackupLogger::append('Running [initial] backup mode.');
 }
 
-$backup = nekoBackup\Backup::get(CONFIG_PATH . 'config.yaml');
+$backup = nekoBackup\Backup::get(Config::get('schedule'));
 $backup->execute(isset($opts['initial']) ? 'initial' : time());

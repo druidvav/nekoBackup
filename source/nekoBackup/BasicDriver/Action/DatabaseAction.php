@@ -8,24 +8,24 @@ use nekoBackup\Event\FileReady as FileReadyEvent;
 
 class DatabaseAction extends Action
 {
-  public function execute($config, $period)
+  public function execute($period)
   {
-    foreach($config as $pkg => $pkg_config) {
-      BackupLogger::indent($pkg);
+    foreach($this->getActionConfig() as $pkg => $pkg_config) {
+      $this->indent($pkg);
 
       if($pkg_config['period'] == $period) {
         $this->executeSingle($pkg, $pkg_config);
       } else {
-        BackupLogger::append("skipping ({$pkg_config['period']})", 1);
+        $this->write("skipping ({$pkg_config['period']})", 1);
       }
 
-      BackupLogger::back();
+      $this->back();
     }
   }
 
   public function executeSingle($pkg, $config)
   {
-    BackupLogger::append('getting database list..', 1);
+    $this->write('getting database list..', 1);
 
     switch($config['type']) {
       case 'mysql': $list = $this->getMysqlDatabaseList($config); break;
@@ -33,17 +33,17 @@ class DatabaseAction extends Action
       default: $list = array(); break;
     }
 
-    BackupLogger::append(' ..done', 1);
+    $this->write(' ..done', 1);
 
     foreach($list as $db) {
       if(!empty($config['exclude']) && in_array($db, $config['exclude'])) {
-        BackupLogger::append("$db excluded", 1);
+        $this->write("$db excluded", 1);
         continue;
       }
 
-      BackupLogger::indent($db);
+      $this->indent($db);
 
-      BackupLogger::append("archiving..", 1);
+      $this->write("archiving..", 1);
       $filename = $this->prepareFilename($pkg . '-' . $db, 'sql.gz');
 
       switch($config['type']) {
@@ -54,9 +54,9 @@ class DatabaseAction extends Action
       global $dispatcher;
       $dispatcher->dispatch('nekobackup.file-ready', new FileReadyEvent($filename));
 
-      BackupLogger::append(" ..done", 1);
+      $this->write(" ..done", 1);
 
-      BackupLogger::back();
+      $this->back();
     }
   }
 

@@ -8,24 +8,26 @@ use nekoBackup\BasicDriver\Action;
 
 class CleanupAction extends Action
 {
-  public function execute($config, $period)
+  public function execute($period)
   {
-    $storage_dir = $this->config['storage'];
+    $config = $this->getGlobalConfig();
 
-    $dirs = `ls {$storage_dir}`;
+    $dirs = `ls {$config['storage']}`;
     foreach(explode("\n", $dirs) as $dir) {
       if(empty($dir)) continue;
 
+      $this->indent($dir);
+
       if(!$this->checkDateDirectory($dir)) {
-        BackupLogger::append("{$dir} expired");
-
-        exec("rm -f {$storage_dir}{$dir}/*");
-        exec("rmdir {$storage_dir}{$dir}/");
-
-        BackupLogger::append($dir . ' deleted');
+        $this->write("expired..");
+        exec("rm -f {$config['storage']}{$dir}/*");
+        exec("rmdir {$config['storage']}{$dir}/");
+        $this->write(' ..deleted');
       } else {
-        BackupLogger::append("{$dir} actual");
+        $this->write("actual");
       }
+
+      $this->back();
     }
   }
 
@@ -33,7 +35,7 @@ class CleanupAction extends Action
   {
     $date = strtotime($dir);
     $period = Backup::getDatePeriod($date);
-    $config = Backup::get()->config['cleanup'];
+    $config = $this->getActionConfig();
     return !(time() > strtotime('+' . $config[$period], $date));
   }
 }

@@ -1,29 +1,30 @@
 <?php
 namespace nekoBackup\BasicDriver\Action;
 
-use nekoBackup\BackupLogger;
 use nekoBackup\BasicDriver\Action;
 
 class SystemAction extends Action
 {
-  public function execute($config, $period)
+  public function execute($period)
   {
+    $config = $this->getActionConfig();
+
     if ($config['period'] != $period) {
-      BackupLogger::append("skipping ({$config['period']})", 1);
+      $this->write("skipping ({$config['period']})");
       return;
     }
 
     if($config['packages'] != 'Debian') {
-      BackupLogger::append("unknown packaging mode: {$config['packages']}", 3);
+      $this->write("unknown packaging mode: {$config['packages']}");
       return;
     }
 
-    BackupLogger::append("reading packages for Debian..", 1);
+    $this->write("reading packages for Debian..");
 
     $filename = $this->prepareFilename('system-packages', 'txt.bz2');
     exec(sprintf("dpkg --get-selections | grep -v deinstall | bzip2 --best > %s", escapeshellarg($filename)));
-    $this->driver->reportFileReady($filename);
+    $this->reportFileReady($filename);
 
-    BackupLogger::append(" ..done", 1);
+    $this->write(" ..done");
   }
 }

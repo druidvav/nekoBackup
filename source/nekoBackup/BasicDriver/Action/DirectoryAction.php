@@ -1,53 +1,50 @@
 <?php
 namespace nekoBackup\BasicDriver\Action;
 
-use nekoBackup\BackupLogger;
-
 use nekoBackup\BasicDriver\Action;
 use nekoBackup\Event\FileReady as FileReadyEvent;
 
 class DirectoryAction extends Action
 {
-  public function execute($config, $period)
+  public function execute($period)
   {
-    foreach($config as $pkg => $pkg_config) {
-      BackupLogger::indent($pkg);
+    foreach($this->getActionConfig() as $section => $sectionConfig) {
+      $this->indent($section);
 
-      if($pkg_config['period'] == $period) {
-        $this->archiveDirectory($this->prepareFilename($pkg, 'tar.gz'), $pkg_config);
+      if($sectionConfig['period'] == $period) {
+        $this->archiveSection(
+          $this->prepareFilename($section, 'tar.gz'),
+          @$sectionConfig['base'], $sectionConfig['include'], $sectionConfig['exclude']
+        );
       } else {
-        BackupLogger::append("skipping ({$pkg_config['period']})", 1);
+        $this->write("skipping ({$sectionConfig['period']})");
       }
 
-      BackupLogger::back();
+      $this->back();
     }
   }
 
-  protected function archiveDirectory($file, $config)
+  protected function archiveSection($archive, $directory, $include, $exclude)
   {
-    global $dispatcher;
-
     $included = array();
     $excluded = array();
 
-    if(!empty($config['base'])) {
-      $included[] = $config['base'];
+    if(!empty($directory)) {
+      $included[] = $directory;
     }
 
-    if(!empty($config['include'])) foreach($config['include'] as $dir) {
-      $included[] = $dir{0} != '/' ? @$config['base'] . '/' . $dir : $dir;
+    if(!empty($include)) foreach($include as $includeDir) {
+      $included[] = $includeDir{0} != '/' ? $directory . '/' . $includeDir : $includeDir;
     }
 
-    if(!empty($config['exclude'])) foreach($config['exclude'] as $dir) {
-      $excluded[] = $dir{0} != '/' ? @$config['base'] . '/' . $dir : $dir;
+    if(!empty($exclude)) foreach($exclude as $excludeDir) {
+      $excluded[] = $excludeDir{0} != '/' ? $directory . '/' . $excludeDir : $excludeDir;
     }
 
-    BackupLogger::append("archiving..", 1);
-
-    $this->archive($file, $included, $excluded);
-    $dispatcher->dispatch('nekobackup.file-ready', new FileReadyEvent($file));
-
-    BackupLogger::append(" ..done", 1);
+    $this->write("archiving..");
+    $this->archive($archive, $included, $excluded);
+    $this->dispatcher()->dispatch('nekobackup.file-ready', new FileReadyEvent($archive));
+    $this->write(" ..done");
   }
 
   protected function archive($archive, $include, $exclude = array())
