@@ -1,6 +1,10 @@
 {
   "require": {
     "aws/aws-sdk-php": "2.3.*@dev",
-    "symfony/yaml": "2.3.x-dev"
+    "symfony/yaml": "2.3.x-dev",
+    "symfony/event-dispatcher": "2.3.x-dev"
+  },
+  "autoload": {
+    "psr-0": {"nekoBackup\\": "source/"}
   }
 }

@@ -6,40 +6,44 @@ define('BUNDLE_PATH', dirname(__FILE__) . '/bundle/');
 define('S3CMD_PATH',  dirname(__FILE__) . '/bundle/s3cmd/');
 define('LOG_PATH',    '/var/log/nbackup.log');
 
-include_once(SOURCE_PATH . 'Backup.php');
 include_once(VENDOR_PATH . 'autoload.php');
 
-echo "  >>  nekoBackup 1.2rc1 by druidvav  << \n";
+echo "  >>  nekoBackup 1.3alpha by druidvav  << \n";
 echo "\n";
 
 $opts = getopt('', array('driver:', 'initial', 'install'));
 
-if(isset($opts['install']))
-{
-  echo "Installing crontab...";
+//if(isset($opts['install']))
+//{
+//  echo "Installing crontab...";
+//
+//  $line = "0 3 * * * php " . __FILE__ . " --driver={$opts['driver']} &> /dev/null\n";
+//  `(crontab -l; echo "{$line}") | crontab -`;
+//
+//  echo " done.\n";
+//  exit;
+//}
 
-  $line = "0 3 * * * php " . __FILE__ . " --driver={$opts['driver']} &> /dev/null\n";
-  `(crontab -l; echo "{$line}") | crontab -`;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
-  echo " done.\n";
-  exit;
-}
+$dispatcher = new EventDispatcher();
 
 switch(@$opts['driver'])
 {
   case 's3':
-    BackupLogger::append('Using [Amazon S3] storage driver.');
-    BackupS3::init(CONFIG_PATH . 's3.yaml');
+    nekoBackup\BackupLogger::append('Using [Amazon S3] storage driver.');
+
+    $driver = new nekoBackup\S3Driver\Driver(CONFIG_PATH . 's3.yaml', $dispatcher);
     break;
   default:
-    BackupLogger::append('Using default storage driver.');
+    nekoBackup\BackupLogger::append('Using default storage driver.');
     break;
 }
 
 if(isset($opts['initial']))
 {
-  BackupLogger::append('Running [initial] backup mode.');
+  nekoBackup\BackupLogger::append('Running [initial] backup mode.');
 }
 
-$backup = Backup::get(CONFIG_PATH . 'config.yaml');
+$backup = nekoBackup\Backup::get(CONFIG_PATH . 'config.yaml');
 $backup->execute(isset($opts['initial']) ? 'initial' : time());

@@ -1,7 +1,9 @@
 <?php
-spl_autoload_register(array('Backup', 'Autoload'));
+namespace nekoBackup;
 
 use \Symfony\Component\Yaml\Yaml;
+
+use nekoBackup\Event\Action as ActionEvent;
 
 class Backup
 {
@@ -23,14 +25,6 @@ class Backup
     return self::$instance;
   }
 
-  public static function Autoload($class)
-  {
-    if(file_exists(SOURCE_PATH . $class . '.php'))
-    {
-      include_once(SOURCE_PATH . $class . '.php');
-    }
-  }
-
   // Object zone
 
   public $config;
@@ -48,6 +42,9 @@ class Backup
 
   public function execute($date)
   {
+    global $dispatcher;
+    $basic = new \nekoBackup\BasicDriver\Driver($dispatcher);
+
     switch($period = self::getDatePeriod($date))
     { // TODO: Issue #2
       case 'monthly': $this->executePeriodic('monthly');
@@ -59,12 +56,9 @@ class Backup
   public function executePeriodic($period)
   {
     BackupLogger::append("Backup started: {$period}.", 2);
-    BackupEvents::trigger('start');
 
-    foreach($this->config['schedule'] as $section)
-    {
-      if(empty($this->config[$section]))
-      {
+    foreach($this->config['schedule'] as $section) {
+      if(empty($this->config[$section])) {
         BackupLogger::append("Unknown section '{$section}'", 3);
         continue;
       }
@@ -72,59 +66,27 @@ class Backup
       BackupLogger::indent($section);
       BackupLogger::append("started", 2);
 
-      $class = 'Backup' . ucfirst($section);
-      $class::execute($this->config[$section], $period);
+      global $dispatcher;
+      $dispatcher->dispatch('nekobackup.action', new ActionEvent($section, $period));
 
       BackupLogger::append("finished", 2);
       BackupLogger::back();
     }
 
-    BackupEvents::trigger('finish');
     BackupLogger::append("Backup finished.", 2);
 
     return true;
   }
 
-  public function prepareFilename($name, $ext = '', $postfix = '')
-  {
-    $filename =
-      $this->config['storage'] // Storage path
-        . date('Ymd/') // Date directory
-        . date('Ymd.His.') // Datetime filename prefix
-        . $name // Requested filename
-        . ($postfix ? '.' . $postfix : '') // Postfix
-        . '.' . $ext; // Extension
-
-    // Creating directory if it doesn't exist
-    if(!is_dir(dirname($filename)))
-    {
-      mkdir(dirname($filename));
-    }
-
-    if(is_file($filename))
-    {
-      return $this->prepareFilename($name, $ext, $postfix + 1);
-    }
-
-    return $filename;
-  }
-
   public static function getDatePeriod($date)
   { // TODO: Issue #2
-    if($date == 'initial')
-    {
+    if($date == 'initial') {
       return "monthly";
-    }
-    elseif($date == strtotime('first monday ' . date('M Y', $date)))
-    { // monthly
+    } elseif($date == strtotime('first monday ' . date('M Y', $date))) {
       return "monthly";
-    }
-    elseif(date('N', $date) == 1)
-    { // weekly
+    } elseif(date('N', $date) == 1) {
       return "weekly";
-    }
-    else
-    { // weekly
+    } else {
       return "daily";
     }
   }
