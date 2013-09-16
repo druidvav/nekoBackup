@@ -61,6 +61,6 @@ class DirectoryAction extends Action
       if(!empty($dir)) $cl_exclude .= ' --exclude="' . $dir . '"';
     }
 
-    return `tar {$cl_exclude} -czpf {$archive} {$cl_include} 2>&1`;
+    return `nice -n 19 tar {$cl_exclude} -czpf {$archive} {$cl_include} 2>&1`;
   }
 }
