@@ -53,8 +53,7 @@ class DatabaseAction extends Action
         case 'postgres': $this->dumpPostgresDatabase($config, $db, $filename); break;
       }
 
-      global $dispatcher;
-      $dispatcher->dispatch('nekobackup.file-ready', new FileReadyEvent($filename));
+      $this->dispatcher()->dispatch('nekobackup.file-ready', new FileReadyEvent($filename));
 
       $this->write(" ..done", 1);
 
