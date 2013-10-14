@@ -1,7 +1,7 @@
 <?php
 namespace nekoBackup\BasicDriver\Action;
 
-use nekoBackup\Backup;
+use nekoBackup\App;
 use nekoBackup\BasicDriver\Action;
 
 class CleanupAction extends Action
@@ -34,7 +34,7 @@ class CleanupAction extends Action
   public function checkDateDirectory($dir)
   {
     $date = strtotime($dir);
-    $period = Backup::getDatePeriod($date);
+    $period = App::getDatePeriod($date);
     $config = $this->getActionConfig();
     return !(time() > strtotime('+' . $config[$period], $date));
   }
