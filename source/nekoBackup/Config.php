@@ -13,7 +13,7 @@ class Config
       $configPath = CONFIG_PATH . $file . '.yaml';
 
       if(!is_file($configPath)) {
-        BackupLogger::append('File "' . $configPath . '" not found');
+        Logger::append('File "' . $configPath . '" not found');
         die(1);
       }
 
