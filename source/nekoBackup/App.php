@@ -2,6 +2,8 @@
 namespace nekoBackup;
 
 use nekoBackup\Event\Action as ActionEvent;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class App
@@ -44,7 +46,7 @@ class App
     }
   }
 
-  public function bootstrap()
+  public function archive()
   {
     Logger::append('Starting backup...');
     foreach($this->archives as $archive) {
@@ -58,6 +60,50 @@ class App
       Logger::append('Finished!');
       Logger::back();
     }
-    Logger::append('Finished!');
+    Logger::append('Backup finished!');
+  }
+
+  public function cleanup()
+  {
+    Logger::append('Starting cleanup...');
+    Logger::indent('cleanup-files');
+
+    $finder = new Finder();
+    $finder->files()->in($this->config->get('storage'))->sortByName();
+    foreach ($finder as $file) {
+      /* @var SplFileInfo $file */
+      Logger::indent($file->getBasename());
+      list($date, $expireDays, $title, $ext) = explode('.', $file->getBasename(), 4);
+      if(strtotime('+' . $expireDays . ' days', strtotime($date)) < time()) {
+        Logger::append('expired, removing...');
+        unlink($file->getRealpath());
+        Logger::append('removed!');
+      } else {
+        Logger::append('actual');
+      }
+      Logger::back();
+    }
+
+    Logger::back();
+    Logger::indent('cleanup-dirs');
+
+    $finder = new Finder();
+    $finder->directories()->in($this->config->get('storage'))->sortByName();
+    foreach ($finder as $dir) {
+      /* @var SplFileInfo $dir */
+      Logger::indent($dir->getBasename());
+      $filesFinder = new Finder();
+      if($filesFinder->files()->in($dir->getRealpath())->count() == 0) {
+        Logger::append('empty, removing');
+        rmdir($dir->getRealpath());
+        Logger::append('removed!');
+      } else {
+        Logger::append('not empty');
+      }
+      Logger::back();
+    }
+
+    Logger::back();
+    Logger::append('Cleanup finished!');
   }
 }

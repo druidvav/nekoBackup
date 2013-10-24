@@ -12,7 +12,8 @@ $console->register('backup')
   ->setDescription('Start backup process')
   ->setCode(function () {
     $app = new nekoBackup\App();
-    $app->bootstrap();
+    $app->archive();
+    $app->cleanup();
   });
 $console->register('install')
   ->setDescription('Install backup script to crontab')
