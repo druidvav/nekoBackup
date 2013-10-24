@@ -1,18 +1,26 @@
 <?php
 namespace nekoBackup\S3Driver;
 
-use Aws\S3\S3Client;
 use nekoBackup\Config;
-use nekoBackup\DriverAbstract;
-use nekoBackup\BackupLogger;
-use nekoBackup\BasicDriver\Action as ActionAbstract;
+use Aws\S3\S3Client;
+use Aws\S3\Model\MultipartUpload\UploadBuilder;
 
-abstract class Action extends ActionAbstract
+abstract class AbstractAction
 {
   /**
    * @var S3Client
    */
   private $client;
+
+  /**
+   * @var Config
+   */
+  protected $config;
+
+  public function __construct(Config $config)
+  {
+    $this->config = $config;
+  }
 
   public function client()
   {
@@ -26,9 +34,20 @@ abstract class Action extends ActionAbstract
     return $this->client;
   }
 
+  /**
+   * @param $filename
+   * @return UploadBuilder
+   */
+  protected function getUploader($filename)
+  {
+    return UploadBuilder::newInstance()
+      ->setClient($this->client())
+      ->setSource($filename);
+  }
+
   protected function getS3Config()
   {
-    $config = Config::get('s3');
+    $config = $this->config->get('amazonS3');
     $config['directory'] = $config['directory'] . "/";
     return $config;
   }

@@ -10,7 +10,7 @@ class Logger
   {
     $date = date("Y.m.d H:i:s");
     $indent = self::$log_indent ? implode(' > ', self::$log_indent) . ' > ' : '';
-    $message = "$date > $level > {$indent}$message \n";
+    $message = "$date > {$indent}$message \n";
 
     echo $message;
     self::appendFile($message);

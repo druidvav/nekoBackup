@@ -1,16 +1,19 @@
 <?php
 namespace nekoBackup\S3Driver;
 
-use nekoBackup\EventSubscriberAbstract;
+use nekoBackup\Config;
 use nekoBackup\Event\Action as ActionEvent;
 use nekoBackup\Event\FileReady as FileReadyEvent;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
-class EventSubscriber extends EventSubscriberAbstract
+class EventSubscriber implements EventSubscriberInterface
 {
-  /**
-   * @var $driver Driver
-   */
-  protected $driver;
+  protected $config;
+
+  public function __construct(Config $config)
+  {
+    $this->config = $config;
+  }
 
   public static function getSubscribedEvents()
   {
@@ -26,13 +29,25 @@ class EventSubscriber extends EventSubscriberAbstract
 
   public function onFileReady(FileReadyEvent $event)
   {
-    $this->driver->uploadFile($event->getFilename());
+    $this->uploadFile($event->getFilename());
   }
 
-  public function executeAction(ActionEvent $event)
+  protected function uploadFile($filename, $retries = 3)
   {
-    if ($event->getAction() == 'cleanup') {
-      $this->driver->cleanup();
-    }
+    $action = new UploadAction($this->config);
+    $action->execute($filename, $retries);
   }
+
+//  public function executeAction(ActionEvent $event)
+//  {
+//    if ($event->getAction() == 'cleanup') {
+//      $this->cleanup();
+//    }
+//  }
+//
+//  public function cleanup()
+//  {
+//    $action = new Action\CleanupAction($this);
+//    $action->execute();
+//  }
 }

@@ -11,14 +11,10 @@ $console->setVersion(VERSION);
 $console->register('backup')
   ->setDefinition(array(
     new InputArgument('driver', InputArgument::OPTIONAL, 'Backup driver [basic, s3]', 'basic'),
-    new InputOption('initial', 'i', InputOption::VALUE_OPTIONAL, 'Run the first backup with this parameter set to 1', 0),
   ))
   ->setDescription('Start backup process')
   ->setCode(function (InputInterface $input, OutputInterface $output) {
     $app = new nekoBackup\App($input->getArgument('driver'));
-    if($input->getOption('initial')) {
-      $app->setIsInitial(true);
-    }
     $app->bootstrap();
   });
 $console->register('install')
