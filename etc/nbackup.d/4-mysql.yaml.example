@@ -1,0 +1,11 @@
+mysql:
+  type: mysql
+  hostname: localhost
+  username: root
+  password:
+  exclude:
+    - mysql
+    - performance_schema
+    - information_schema
+  schedule: daily
+  cleanup: 7

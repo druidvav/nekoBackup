@@ -1,0 +1,12 @@
+websites:
+  type: directory
+  include:
+    - /srv/www/*/*
+  exclude:
+    - /srv/www/unique/maria
+  schedule:
+    base: [weekly, 6]
+    incremental: daily
+  cleanup:
+    base: 14
+    incremental: 7

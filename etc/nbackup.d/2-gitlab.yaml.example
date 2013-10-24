@@ -1,0 +1,12 @@
+gitlab:
+  type: directory
+  include:
+    - /home/git
+  exclude:
+    - /home/git/gitlab-satellites
+  schedule:
+    base: [weekly, 6]
+    incremental: daily
+  cleanup:
+    base: 14
+    incremental: 7

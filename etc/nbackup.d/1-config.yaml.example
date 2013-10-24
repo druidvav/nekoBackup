@@ -1,0 +1,12 @@
+config:
+  type: directory
+  include:
+    - /etc
+    - /root
+    - /opt
+  schedule:
+    base: [weekly, 6]
+    incremental: daily
+  cleanup:
+    base: 14
+    incremental: 7
