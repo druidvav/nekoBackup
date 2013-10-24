@@ -1,9 +1,10 @@
 storage: /mnt/backup/files
 metadata: /mnt/backup/metadata
-amazonS3:
-  bucket:    "bucket"
-  directory: "example.com"
-  access_key:
-  secret_key:
-  location: eu-west-1
+# amazonS3:
+#   bucket:    "bucket"
+#   directory: "example.com"
+#   access_key:
+#   secret_key:
+#   location: eu-west-1
+#  deleteAfterUpload: false
 sections.include: ./nbackup.d/

@@ -10,7 +10,7 @@ class App
   protected $dispatcher;
   protected $archives = array();
 
-  public function __construct($driver)
+  public function __construct()
   {
     $this->config = new Config();
     $this->dispatcher = new EventDispatcher();
@@ -38,7 +38,7 @@ class App
 
     Logger::append('Backup queue ready.');
 
-    if($driver == 's3') {
+    if($this->config->get('amazonS3')) {
       Logger::append('Using [Amazon S3] extension.');
       $this->dispatcher->addSubscriber(new S3Driver\EventSubscriber($this->config));
     }

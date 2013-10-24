@@ -24,8 +24,10 @@ class UploadAction extends AbstractAction
     try {
       $uploader->upload();
       Logger::append('complete!');
-//      Logger::append('removing local file..');
-//      unlink($filename);
+      if($config['deleteAfterUpload']) {
+        Logger::append('removing local file..');
+        unlink($filename);
+      }
     } catch (MultipartUploadException $e) {
       if($retries > 0) {
         Logger::append('failed: ' . $e->getMessage());
