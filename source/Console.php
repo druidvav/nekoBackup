@@ -26,7 +26,7 @@ $console->register('install')
     $driver = $input->getArgument('driver');
 
     $output->write("Installing crontab...");
-    $line = "30 1 * * * php " . __FILE__ . " backup {$driver} &> /dev/null\n";
+    $line = "30 1 * * * php " . EXECUTABLE . " backup {$driver} &> /dev/null\n";
     exec("(crontab -l; echo \"{$line}\") | crontab -");
     $output->writeln(" done.");
   });

@@ -3,6 +3,7 @@ define('VERSION', '1.3rc1');
 define('CONFIG_FILE', dirname(__FILE__) . '/etc/nbackup.yaml');
 define('SOURCE_PATH', dirname(__FILE__) . '/source/');
 define('VENDOR_PATH', dirname(__FILE__) . '/vendor/');
+define('EXECUTABLE',  __FILE__);
 define('LOG_PATH',    '/var/log/nbackup.log');
 
 include_once(VENDOR_PATH . 'autoload.php');
