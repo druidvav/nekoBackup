@@ -18,10 +18,8 @@ $console->register('backup')
 $console->register('install')
   ->setDescription('Install backup script to crontab')
   ->setCode(function (InputInterface $input, OutputInterface $output) {
-    $driver = $input->getArgument('driver');
-
     $output->write("Installing crontab...");
-    $line = "30 1 * * * php " . EXECUTABLE . " backup {$driver} &> /dev/null\n";
+    $line = "30 1 * * * php " . EXECUTABLE . " backup &> /dev/null\n";
     exec("(crontab -l; echo \"{$line}\") | crontab -");
     $output->writeln(" done.");
   });
