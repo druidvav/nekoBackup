@@ -54,4 +54,10 @@ class Config
     }
     return null;
   }
+
+  public function checkIfArchiveExpired($filename)
+  {
+    list($date, $expireDays, $title, $ext) = explode('.', basename($filename), 4);
+    return strtotime('+' . $expireDays . ' days', strtotime($date)) < time();
+  }
 }

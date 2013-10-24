@@ -66,15 +66,14 @@ class App
   public function cleanup()
   {
     Logger::append('Starting cleanup...');
-    Logger::indent('cleanup-files');
 
+    Logger::indent('cleanup-files');
     $finder = new Finder();
     $finder->files()->in($this->config->get('storage'))->sortByName();
     foreach ($finder as $file) {
       /* @var SplFileInfo $file */
       Logger::indent($file->getBasename());
-      list($date, $expireDays, $title, $ext) = explode('.', $file->getBasename(), 4);
-      if(strtotime('+' . $expireDays . ' days', strtotime($date)) < time()) {
+      if($this->config->checkIfArchiveExpired($file->getBasename())) {
         Logger::append('expired, removing...');
         unlink($file->getRealpath());
         Logger::append('removed!');
@@ -83,10 +82,9 @@ class App
       }
       Logger::back();
     }
-
     Logger::back();
-    Logger::indent('cleanup-dirs');
 
+    Logger::indent('cleanup-dirs');
     $finder = new Finder();
     $finder->directories()->in($this->config->get('storage'))->sortByName();
     foreach ($finder as $dir) {
@@ -102,8 +100,10 @@ class App
       }
       Logger::back();
     }
-
     Logger::back();
+
+    $this->dispatcher->dispatch('nekobackup.action', new Event\Action('cleanup'));
+
     Logger::append('Cleanup finished!');
   }
 }

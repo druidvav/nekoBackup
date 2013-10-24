@@ -29,25 +29,15 @@ class EventSubscriber implements EventSubscriberInterface
 
   public function onFileReady(FileReadyEvent $event)
   {
-    $this->uploadFile($event->getFilename());
-  }
-
-  protected function uploadFile($filename, $retries = 3)
-  {
     $action = new UploadAction($this->config);
-    $action->execute($filename, $retries);
+    $action->execute($event->getFilename(), 3);
   }
 
-//  public function executeAction(ActionEvent $event)
-//  {
-//    if ($event->getAction() == 'cleanup') {
-//      $this->cleanup();
-//    }
-//  }
-//
-//  public function cleanup()
-//  {
-//    $action = new Action\CleanupAction($this);
-//    $action->execute();
-//  }
+  public function executeAction(ActionEvent $event)
+  {
+    if ($event->getAction() == 'cleanup') {
+      $action = new CleanupAction($this->config);
+      $action->execute();
+    }
+  }
 }
