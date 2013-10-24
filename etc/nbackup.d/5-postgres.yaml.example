@@ -1,7 +1,7 @@
-#postgres:
-#  type: postgres
-#  sh_user: postgres
-#  exclude:
-#    - postgres
-#  schedule: daily
-#  cleanup: 7
+postgres:
+  type: postgres
+  sh_user: postgres
+  exclude:
+    - postgres
+  schedule: daily
+  cleanup: 7
