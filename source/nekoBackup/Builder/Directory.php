@@ -39,15 +39,14 @@ class Directory
 
   private function prepareArchivesByExpression($expression)
   {
-    if(substr($expression, -2) != '/*') {
-      throw new \Exception('Path expression is not supported');
+    if(is_dir($expression)) {
+      $directories = array($expression);
+    } else {
+      $directories = glob($expression, GLOB_ONLYDIR);
+      sort($directories);
     }
 
-    $finder = new Finder();
-    $finder->directories()->in(substr($expression, 0, -2))->depth('== 0')->sortByName();
-    foreach ($finder as $file) {
-      /* @var SplFileInfo $file */
-      $path = $file->getRealpath();
+    foreach ($directories as $path) {
       $title = $this->generateTitleForExpressionArchive($path, $expression);
       $archive = new Archive\Directory($this->config, $title);
       $archive->setInclude($path);
