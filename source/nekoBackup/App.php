@@ -52,10 +52,15 @@ class App
       /* @var Archive\AbstractArchive $archive */
       Logger::indent($archive->getTitle());
       Logger::append('Backuping...');
-      $archive->create();
-      $filename = $archive->getArchiveFilename();
-      Logger::append('Got file: ' . $filename);
-      $this->dispatcher->dispatch('nekobackup.file-ready', new Event\FileReady($filename));
+      try {
+        $archive->create();
+        $filename = $archive->getArchiveFilename();
+        Logger::append('Got file: ' . $filename);
+        $this->dispatcher->dispatch('nekobackup.file-ready', new Event\FileReady($filename));
+      } catch(Archive\Exception\ArchiveExists $e) {
+        $filename = $e->getArchiveFilename();
+        Logger::append('Archive exists: ' . $filename);
+      }
       Logger::append('Finished!');
       Logger::back();
     }

@@ -94,8 +94,13 @@ class Directory extends AbstractArchive
       $options .= ' --listed-incremental="' . $this->metadataFilename . '"';
     }
 
-    $cmd = "nice -n 19 tar {$exclude} -czpf {$this->archiveFilename} {$include} {$options} 2>&1";
+    @unlink("{$this->archiveFilename}.tmp");
+    if(file_exists($this->archiveFilename)) {
+      throw new Exception\ArchiveExists($this->archiveFilename);
+    }
+    $cmd = "nice -n 19 tar {$exclude} -czpf {$this->archiveFilename}.tmp {$include} {$options} 2>&1";
     system($cmd, $status);
+    rename("{$this->archiveFilename}.tmp", $this->archiveFilename);
     return $status == 0;
   }
 
