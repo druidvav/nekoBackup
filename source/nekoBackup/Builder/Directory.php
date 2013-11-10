@@ -92,7 +92,7 @@ class Directory
           $archive->setExpiresIn($cleanup['base']);
         }
       } else {
-        unset($this->archives[$id]); // FIXME
+        unset($this->archives[$id]);
       }
     }
   }

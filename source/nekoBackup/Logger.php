@@ -18,7 +18,7 @@ class Logger
 
   public static function appendFile($message)
   {
-    $fh = fopen(LOG_PATH, 'a+') or die('Couldn\'t open logfile');
+    $fh = fopen(LOG_FILE, 'a+') or die('Couldn\'t open logfile');
     if(flock($fh, LOCK_EX)) {
       fseek($fh, 0, SEEK_END);
       fwrite($fh, $message);
@@ -26,7 +26,7 @@ class Logger
       die('Couldn\'t block logfile for exclusive access');
     }
     fclose($fh);
-    @chmod(LOG_PATH, 0644);
+    @chmod(LOG_FILE, 0600);
   }
 
 

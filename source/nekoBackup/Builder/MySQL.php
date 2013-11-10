@@ -83,7 +83,7 @@ class MySQL
       if($this->config->checkScheduleMatch($schedule)) {
         $archive->setExpiresIn($cleanup);
       } else {
-        unset($this->archives[$id]); // FIXME
+        unset($this->archives[$id]);
       }
     }
   }

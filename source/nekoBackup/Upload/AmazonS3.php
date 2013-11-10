@@ -114,7 +114,5 @@ class AmazonS3
       Logger::back();
     }
     Logger::back();
-
-    // FIXME check if we need to delete empty directories
   }
 }

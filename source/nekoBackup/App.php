@@ -16,6 +16,18 @@ class App
 
   protected function buildQueue()
   {
+    if(!is_dir($this->config->get('storage'))) {
+      throw new \Exception('Storage directory does not exist.');
+    }
+
+    if(!is_dir($this->config->get('metadata'))) {
+      throw new \Exception('Metadata directory does not exist.');
+    }
+
+    if(!file_exists(CONFIG_FILE)) {
+      throw new \Exception('Config file does not exist.');
+    }
+
     Logger::append('Building backup queue...');
 
     foreach($this->config->get('sections') as $title => $section) {
