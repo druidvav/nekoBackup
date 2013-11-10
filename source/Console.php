@@ -5,15 +5,21 @@ use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+$app = new nekoBackup\App();
+
 $console = new Application();
 $console->setName('[ nekoBackup by druidvav ]');
 $console->setVersion(VERSION);
 $console->register('backup')
   ->setDescription('Start backup process')
-  ->setCode(function () {
-    $app = new nekoBackup\App();
+  ->setCode(function () use ($app) {
     $app->archive();
     $app->cleanup();
+  });
+$console->register('upload')
+  ->setDescription('Upload files to  Amazon S3')
+  ->setCode(function () use ($app) {
+    $app->uploadAmazonS3();
   });
 $console->register('install')
   ->setDescription('Install backup script to crontab')

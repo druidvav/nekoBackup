@@ -16,6 +16,14 @@ class App
     $this->config = new Config();
     $this->dispatcher = new EventDispatcher();
 
+//    if($this->config->get('amazonS3')) {
+//      Logger::append('Using [Amazon S3] extension.');
+//      $this->dispatcher->addSubscriber(new S3Driver\EventSubscriber($this->config));
+//    }
+  }
+
+  protected function buildQueue()
+  {
     Logger::append('Building backup queue...');
 
     foreach($this->config->get('sections') as $title => $section) {
@@ -38,15 +46,12 @@ class App
     }
 
     Logger::append('Backup queue ready.');
-
-    if($this->config->get('amazonS3')) {
-      Logger::append('Using [Amazon S3] extension.');
-      $this->dispatcher->addSubscriber(new S3Driver\EventSubscriber($this->config));
-    }
   }
 
   public function archive()
   {
+    $this->buildQueue();
+
     Logger::append('Starting backup...');
     foreach($this->archives as $archive) {
       /* @var Archive\AbstractArchive $archive */
@@ -55,8 +60,8 @@ class App
       try {
         $archive->create();
         $filename = $archive->getArchiveFilename();
-        Logger::append('Got file: ' . $filename);
-        $this->dispatcher->dispatch('nekobackup.file-ready', new Event\FileReady($filename));
+        Logger::append('Archive ready: ' . $filename);
+//        $this->dispatcher->dispatch('nekobackup.file-ready', new Event\FileReady($filename));
       } catch(Archive\Exception\ArchiveExists $e) {
         $filename = $e->getArchiveFilename();
         Logger::append('Archive exists: ' . $filename);
@@ -106,8 +111,42 @@ class App
     }
     Logger::back();
 
-    $this->dispatcher->dispatch('nekobackup.action', new Event\Action('cleanup'));
+//    $this->dispatcher->dispatch('nekobackup.action', new Event\Action('cleanup'));
 
     Logger::append('Cleanup finished!');
+  }
+
+  public function uploadAmazonS3()
+  {
+    if(!$this->config->get('amazonS3')) {
+      Logger::append('Amazon S3 uploader is not configured.');
+      return true;
+    }
+
+    Logger::append('Searching for files to upload...');
+    $finder = new Finder();
+    $finder->files()->in($this->config->get('storage'))->sortByName();
+    foreach ($finder as $dir) {
+      /* @var SplFileInfo $dir */
+      Logger::indent($dir->getBasename());
+      $basename = $dir->getBasename();
+
+      if(preg_match('#\.(uploaded|tmp)$#', $basename)) {
+        // This is semaphore file, so we just ignore it
+        continue;
+      }
+
+      if(file_exists($dir->getRealPath() . '.uploaded')) {
+        // This file is already uploaded
+        continue;
+      }
+
+      $action = new S3Driver\UploadAction($this->config);
+      $action->execute($dir->getRealPath(), 3);
+      file_put_contents($dir->getRealPath() . '.uploaded', date('r'));
+
+      Logger::back();
+    }
+    Logger::append('Finished');
   }
 }
