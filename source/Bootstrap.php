@@ -1,11 +1,14 @@
 <?php
 define('VERSION', '2.0alpha');
-define('CONFIG_FILE', dirname(__FILE__) . '/../etc/nbackup.yaml');
-define('SOURCE_PATH', dirname(__FILE__) . '/../source/');
-define('VENDOR_PATH', dirname(__FILE__) . '/../vendor/');
-define('EXECUTABLE',  __FILE__);
-define('LOG_PATH',    dirname(__FILE__) . '/../log/summary.log');
-define('ERRLOG_PATH', dirname(__FILE__) . '/../log/error.log');
+define('ROOT_PATH', realpath(dirname(__FILE__) . '/../'));
+
+define('EXECUTABLE',  ROOT_PATH . 'sbin/nbackup');
+define('CONFIG_FILE', ROOT_PATH . 'etc/nbackup.yaml');
+define('LOG_PATH',    ROOT_PATH . 'log/summary.log');
+define('ERRLOG_PATH', ROOT_PATH . 'log/error.log');
+define('TMP_PATH',    ROOT_PATH . 'tmp/');
+define('SOURCE_PATH', ROOT_PATH . 'source/');
+define('VENDOR_PATH', ROOT_PATH . 'vendor/');
 
 error_reporting(E_ALL);
 ini_set('display_errors', 'On');
