@@ -1,8 +1,6 @@
 <?php
 namespace nekoBackup\Builder;
 
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
 use nekoBackup\Config;
 use nekoBackup\Archive;
 
@@ -90,7 +88,7 @@ class Directory
         if($archive->setIncremental($baseDate)) {
           $archive->setExpiresIn($cleanup['incremental']);
         } else {
-          $archive->setIncrementalBase($baseDate);
+          $archive->setIncrementalBase();
           $archive->setExpiresIn($cleanup['base']);
         }
       } else {

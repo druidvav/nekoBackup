@@ -59,24 +59,37 @@ class Directory extends AbstractArchive
     $this->exclude[] = $this->include[0] . '/' . $path;
   }
 
-  public function setIncrementalBase(\DateTime $baseDate = null)
+  public function setIncrementalBase()
   {
     $this->mode = 'base';
-    $this->baseDate = $baseDate ? $baseDate : new \DateTime();
+    $this->baseDate = new \DateTime();
     $this->metadataFilename = $this->generateMetadataPath();
   }
 
   public function setIncremental(\DateTime $baseDate)
   {
+    $curDate = new \DateTime();
+    if($baseDate->format('Ymd') >= $curDate->format('Ymd')) {
+      return false;
+    }
     $this->mode = 'inc';
     $this->baseDate = $baseDate;
     $this->metadataFilename = $this->generateMetadataPath();
-    return file_exists($this->metadataFilename);
+    if(file_exists($this->metadataFilename)) {
+      return true;
+    } else {
+      $baseDate->modify('+1 day');
+      return $this->setIncremental($baseDate);
+    }
   }
 
   public function create()
   {
     $this->archiveFilename = $this->generateArchivePath('tar.gz');
+
+    if(file_exists($this->archiveFilename)) {
+      throw new Exception\ArchiveExists($this->archiveFilename);
+    }
 
     $include = implode(' ', $this->include);
 
@@ -91,16 +104,18 @@ class Directory extends AbstractArchive
 
     $options = '';
     if(!empty($this->metadataFilename)) {
-      $options .= ' --listed-incremental="' . $this->metadataFilename . '"';
+      @unlink("{$this->metadataFilename}.tmp");
+      $options .= ' --listed-incremental="' . $this->metadataFilename . '.tmp"';
     }
 
     @unlink("{$this->archiveFilename}.tmp");
-    if(file_exists($this->archiveFilename)) {
-      throw new Exception\ArchiveExists($this->archiveFilename);
+    system("nice -n 19 tar {$exclude} -czpf {$this->archiveFilename}.tmp {$include} {$options} 2>&1", $status);
+    if($status == 0) {
+      rename("{$this->archiveFilename}.tmp", $this->archiveFilename);
+      if(!empty($this->metadataFilename)) {
+        rename("{$this->metadataFilename}.tmp", $this->metadataFilename);
+      }
     }
-    $cmd = "nice -n 19 tar {$exclude} -czpf {$this->archiveFilename}.tmp {$include} {$options} 2>&1";
-    system($cmd, $status);
-    rename("{$this->archiveFilename}.tmp", $this->archiveFilename);
     return $status == 0;
   }
 
