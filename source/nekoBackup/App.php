@@ -137,7 +137,7 @@ class App
         Logger::indent($dir->getBasename());
 
         $nothingFoundFlag = false;
-        $action = new Upload\AmazonS3Action($this->config);
+        $action = new Upload\AmazonS3($this->config);
         $action->upload($dir->getRealPath(), 3);
         file_put_contents($dir->getRealPath() . '.uploaded', date('r'));
 
@@ -159,7 +159,7 @@ class App
     }
 
     Logger::append('Cleaning up...');
-    $action = new Upload\AmazonS3Action($this->config);
+    $action = new Upload\AmazonS3($this->config);
     $action->cleanup();
     Logger::append('Cleanup finished');
   }

@@ -7,7 +7,7 @@ use nekoBackup\Config;
 use Aws\S3\Model\MultipartUpload\UploadBuilder;
 use Aws\Common\Exception\MultipartUploadException;
 
-class AmazonS3Action
+class AmazonS3
 {
   /**
    * @var S3Client

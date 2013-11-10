@@ -8,7 +8,7 @@ define('LOG_PATH',    dirname(__FILE__) . '/../log/summary.log');
 define('ERRLOG_PATH', dirname(__FILE__) . '/../log/error.log');
 
 error_reporting(E_ALL);
-ini_set('display_errors', 'Off');
+ini_set('display_errors', 'On');
 ini_set('log_errors', 'On');
 ini_set('error_log', ERRLOG_PATH);
 
