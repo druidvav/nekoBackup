@@ -112,31 +112,43 @@ class App
       return;
     }
 
-    Logger::append('Searching for files to upload...');
-    $finder = new Finder();
-    $finder->files()->in($this->config->get('storage'))->sortByName();
-    foreach ($finder as $dir) {
-      /* @var SplFileInfo $dir */
-      Logger::indent($dir->getBasename());
-      $basename = $dir->getBasename();
+    $nothingFoundFlag = false;
 
-      if(preg_match('#\.(uploaded|tmp)$#', $basename)) {
-        // This is semaphore file, so we just ignore it
-        continue;
+    while(!$nothingFoundFlag) {
+      $nothingFoundFlag = true;
+      Logger::append('Searching for files to upload...');
+
+      $finder = new Finder();
+      $finder->files()->in($this->config->get('storage'))->sortByName();
+      foreach ($finder as $dir) {
+        /* @var SplFileInfo $dir */
+        $basename = $dir->getBasename();
+
+        if(preg_match('#\.(uploaded|tmp)$#', $basename)) {
+          // This is semaphore file, so we just ignore it
+          continue;
+        }
+
+        if(file_exists($dir->getRealPath() . '.uploaded')) {
+          // This file is already uploaded
+          continue;
+        }
+
+        Logger::indent($dir->getBasename());
+
+        $nothingFoundFlag = false;
+        $action = new S3Driver\UploadAction($this->config);
+        $action->execute($dir->getRealPath(), 3);
+        file_put_contents($dir->getRealPath() . '.uploaded', date('r'));
+
+        Logger::back();
       }
-
-      if(file_exists($dir->getRealPath() . '.uploaded')) {
-        // This file is already uploaded
-        continue;
+      if($nothingFoundFlag) {
+        Logger::append('Nothing to upload.');
+      } else {
+        Logger::append('Upload process finished.');
       }
-
-      $action = new S3Driver\UploadAction($this->config);
-      $action->execute($dir->getRealPath(), 3);
-      file_put_contents($dir->getRealPath() . '.uploaded', date('r'));
-
-      Logger::back();
     }
-    Logger::append('Upload process finished');
   }
 
   public function cleanupAmazonS3()
