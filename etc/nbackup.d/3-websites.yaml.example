@@ -1,7 +1,6 @@
 websites:
   type: directory
-  include:
-    - /srv/www/*/*
+  include: /srv/www/*/*
   exclude:
     - /srv/www/unique/maria
   schedule:
