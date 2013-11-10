@@ -63,8 +63,19 @@ class AmazonS3
     $uploader = $this->getUploader($filename)
       ->setBucket($config['bucket'])
       ->setKey($remote_file)
+      ->setMinPartSize(200 * 1024 * 1024)
       ->setConcurrency(10)
       ->build();
+
+    $uploader->getEventDispatcher()->addListener($uploader::AFTER_PART_UPLOAD, function ($eventData) {
+      $contentLength = $eventData['source']->getContentLength();
+      $totalParts = (int) ceil($contentLength / $eventData['part_size']);
+      $currentPart = count($eventData['state']);
+      $percent = intval(1000 * $currentPart / $totalParts) / 10;
+      if ($currentPart % 5 == 0) {
+        Logger::append($percent . '% of ' . intval($contentLength / (1024 * 1024)) . 'M uploaded');
+      }
+    });
 
     Logger::append('uploading file..');
 
