@@ -14,3 +14,7 @@ ini_set('error_log', ERRLOG_PATH);
 
 include_once(VENDOR_PATH . 'autoload.php');
 include_once(SOURCE_PATH . 'Console.php');
+
+// FIXME metadata cleanup
+// FIXME wildcard only include
+// FIXME parallel upload

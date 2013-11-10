@@ -98,13 +98,14 @@ class Directory extends AbstractArchive
       $exclude .= ' --exclude="' . $path . '"';
     }
 
+    $options = '';
     if($this->mode == 'base') {
       @unlink($this->metadataFilename);
-    }
-
-    $options = '';
-    if(!empty($this->metadataFilename)) {
       @unlink("{$this->metadataFilename}.tmp");
+      $options .= ' --listed-incremental="' . $this->metadataFilename . '.tmp"';
+    } elseif($this->mode == 'inc') {
+      @unlink("{$this->metadataFilename}.tmp");
+      copy($this->metadataFilename, "{$this->metadataFilename}.tmp");
       $options .= ' --listed-incremental="' . $this->metadataFilename . '.tmp"';
     }
 
