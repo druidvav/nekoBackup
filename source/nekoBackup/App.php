@@ -169,14 +169,14 @@ class App
     $pidfile = TMP_PATH . $action . '.pid';
     if(!file_exists($pidfile)) {
       $pid = getmypid();
-      file_put_contents(TMP_PATH . 'backup.pid', $pid);
+      file_put_contents($pidfile, $pid);
     } else {
-      $pid = file_get_contents($pidfile);
+      $pid = intval(file_get_contents($pidfile));
       if(file_exists("/proc/$pid")) {
         throw new \Exception('This type of process is already running');
       } else {
         $pid = getmypid();
-        file_put_contents(TMP_PATH . 'backup.pid', $pid);
+        file_put_contents($pidfile, $pid);
       }
     }
   }
