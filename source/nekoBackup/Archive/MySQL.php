@@ -31,9 +31,13 @@ class MySQL extends AbstractArchive
 //      $config['exclude_tables'][$db] = '';
 //    }
 
-    $cmd = "mysqldump -u {$this->dbAccess['user']} -p{$this->dbAccess['pass']} -h {$this->dbAccess['host']} {$this->database} | gzip -c > \"{$this->archiveFilename}\"";
+    @unlink("{$this->archiveFilename}.tmp");
+    $cmd = "mysqldump -u {$this->dbAccess['user']} -p{$this->dbAccess['pass']} -h {$this->dbAccess['host']} {$this->database} | gzip -c > \"{$this->archiveFilename}.tmp\"";
     // --single-transaction
     system($cmd, $status);
+    if($status == 0) {
+      rename("{$this->archiveFilename}.tmp", $this->archiveFilename);
+    }
     return $status == 0;
   }
 }

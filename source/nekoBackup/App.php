@@ -3,23 +3,15 @@ namespace nekoBackup;
 
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class App
 {
   protected $config;
-  protected $dispatcher;
   protected $archives = array();
 
   public function __construct()
   {
     $this->config = new Config();
-    $this->dispatcher = new EventDispatcher();
-
-//    if($this->config->get('amazonS3')) {
-//      Logger::append('Using [Amazon S3] extension.');
-//      $this->dispatcher->addSubscriber(new S3Driver\EventSubscriber($this->config));
-//    }
   }
 
   protected function buildQueue()
@@ -61,7 +53,6 @@ class App
         $archive->create();
         $filename = $archive->getArchiveFilename();
         Logger::append('Archive ready: ' . $filename);
-//        $this->dispatcher->dispatch('nekobackup.file-ready', new Event\FileReady($filename));
       } catch(Archive\Exception\ArchiveExists $e) {
         $filename = $e->getArchiveFilename();
         Logger::append('Archive exists: ' . $filename);
@@ -111,8 +102,6 @@ class App
     }
     Logger::back();
 
-//    $this->dispatcher->dispatch('nekobackup.action', new Event\Action('cleanup'));
-
     Logger::append('Cleanup finished!');
   }
 
@@ -120,7 +109,7 @@ class App
   {
     if(!$this->config->get('amazonS3')) {
       Logger::append('Amazon S3 uploader is not configured.');
-      return true;
+      return;
     }
 
     Logger::append('Searching for files to upload...');
@@ -147,6 +136,19 @@ class App
 
       Logger::back();
     }
-    Logger::append('Finished');
+    Logger::append('Upload process finished');
+  }
+
+  public function cleanupAmazonS3()
+  {
+    if(!$this->config->get('amazonS3')) {
+      Logger::append('Amazon S3 uploader is not configured.');
+      return;
+    }
+
+    Logger::append('Cleaning up...');
+    $action = new S3Driver\CleanupAction($this->config);
+    $action->execute();
+    Logger::append('Cleanup finished');
   }
 }

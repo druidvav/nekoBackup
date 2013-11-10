@@ -98,7 +98,7 @@ class Directory extends AbstractArchive
       $exclude .= ' --exclude="' . $path . '"';
     }
 
-    $options = '';
+    $options = ' --ignore-failed-read';
     if($this->mode == 'base') {
       @unlink($this->metadataFilename);
       @unlink("{$this->metadataFilename}.tmp");

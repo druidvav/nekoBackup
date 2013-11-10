@@ -19,14 +19,22 @@ $console->register('backup')
 $console->register('upload')
   ->setDescription('Upload files to  Amazon S3')
   ->setCode(function () use ($app) {
+    // FIXME check if still running
     $app->uploadAmazonS3();
+  });
+$console->register('upload-cleanup')
+  ->setDescription('Cleanup files in Amazon S3')
+  ->setCode(function () use ($app) {
+    $app->cleanupAmazonS3();
   });
 $console->register('install')
   ->setDescription('Install backup script to crontab')
   ->setCode(function (InputInterface $input, OutputInterface $output) {
     $output->write("Installing crontab...");
-    $line = "30 1 * * * php " . EXECUTABLE . " backup &> /dev/null\n";
-    exec("(crontab -l; echo \"{$line}\") | crontab -");
+    $lines  = "30  1 * * * php " . EXECUTABLE . " backup &> /dev/null\n";
+    $lines .= " 0  * * * * php " . EXECUTABLE . " upload &> /dev/null\n";
+    $lines .= "00 23 * * * php " . EXECUTABLE . " upload-cleanup &> /dev/null\n";
+    exec("(crontab -l; echo \"{$lines}\") | crontab -");
     $output->writeln(" done.");
   });
 $console->run();
