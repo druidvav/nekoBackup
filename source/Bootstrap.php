@@ -1,6 +1,6 @@
 <?php
 define('VERSION', '2.0alpha');
-define('ROOT_PATH', realpath(dirname(__FILE__) . '/../'));
+define('ROOT_PATH', realpath(dirname(__FILE__) . '/../') . '/');
 
 define('EXECUTABLE',  ROOT_PATH . 'sbin/nbackup');
 define('CONFIG_FILE', ROOT_PATH . 'etc/nbackup.yaml');
