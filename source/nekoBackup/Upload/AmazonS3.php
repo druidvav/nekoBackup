@@ -63,7 +63,7 @@ class AmazonS3
     $uploader = $this->getUploader($filename)
       ->setBucket($config['bucket'])
       ->setKey($remote_file)
-      ->setConcurrency(4)
+      ->setConcurrency(6)
       ->setMinPartSize(50*1024*1024) // 50 Mb
       ->build();
 
