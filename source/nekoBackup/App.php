@@ -2,8 +2,6 @@
 namespace nekoBackup;
 
 use Exception;
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
 
 class App
 {
@@ -44,8 +42,7 @@ class App
     Logger::append('Building backup queue...');
 
     foreach($this->config->get('sections') as $title => $section) {
-      Logger::indent($title);
-      Logger::append('Scanning...');
+      Logger::append("Scanning $title...");
       $className = $this->classMap[$section['type']];
       $builder = new $className($this->config, $title, $section);
       /* @var $builder Builder\AbstractBuilder */
@@ -53,7 +50,6 @@ class App
         $this->archives[] = $archive;
       }
       Logger::append('Complete!');
-      Logger::back();
     }
 
     Logger::append('Backup queue ready.');
@@ -83,101 +79,35 @@ class App
   public function cleanup()
   {
     Logger::append('Starting cleanup...');
-
-    Logger::indent('cleanup-files');
-    $finder = new Finder();
-    $finder->files()->in($this->config->get('storage'))->sortByName();
-    foreach ($finder as $file) {
-      /* @var SplFileInfo $file */
-      Logger::indent($file->getBasename());
-      if($this->config->checkIfArchiveExpired($file->getBasename())) {
-        Logger::append('expired, removing...');
-        unlink($file->getRealpath());
-        Logger::append('removed!');
-      } else {
-        Logger::append('actual');
-      }
-      Logger::back();
-    }
-    Logger::back();
-
-    Logger::indent('cleanup-dirs');
-    $finder = new Finder();
-    $finder->directories()->in($this->config->get('storage'))->sortByName();
-    foreach ($finder as $dir) {
-      /* @var SplFileInfo $dir */
-      Logger::indent($dir->getBasename());
-      $filesFinder = new Finder();
-      if($filesFinder->files()->in($dir->getRealpath())->count() == 0) {
-        Logger::append('empty, removing');
-        rmdir($dir->getRealpath());
-        Logger::append('removed!');
-      } else {
-        Logger::append('not empty');
-      }
-      Logger::back();
-    }
-    Logger::back();
-
+    $action = new Storage\Basic($this->config);
+    $action->cleanup();
     Logger::append('Cleanup finished!');
   }
 
   public function uploadAmazonS3()
   {
     if(!$this->config->get('amazonS3')) {
-      Logger::append('Amazon S3 uploader is not configured.');
-      return;
+      throw new Exception('Amazon S3 uploader is not configured.');
     }
 
+    $action = new Storage\AmazonS3($this->config);
+
     $nothingFoundFlag = false;
-
     while(!$nothingFoundFlag) {
-      $nothingFoundFlag = true;
-      Logger::append('Searching for files to upload...');
-
-      $finder = new Finder();
-      $finder->files()->in($this->config->get('storage'))->sortByName();
-      foreach ($finder as $dir) {
-        /* @var SplFileInfo $dir */
-        $basename = $dir->getBasename();
-
-        if(preg_match('#\.(uploaded|tmp)$#', $basename)) {
-          // This is semaphore file, so we just ignore it
-          continue;
-        }
-
-        if(file_exists($dir->getRealPath() . '.uploaded')) {
-          // This file is already uploaded
-          continue;
-        }
-
-        Logger::indent($dir->getBasename());
-
-        $nothingFoundFlag = false;
-        $action = new Upload\AmazonS3($this->config);
-        if($action->upload($dir->getRealPath(), 3)) {
-          file_put_contents($dir->getRealPath() . '.uploaded', date('r'));
-        }
-
-        Logger::back();
-      }
-      if($nothingFoundFlag) {
-        Logger::append('Nothing to upload.');
-      } else {
-        Logger::append('Upload process finished.');
-      }
+      Logger::append('Starting upload to S3...');
+      $nothingFoundFlag = $action->upload() == 0;
+      Logger::append($nothingFoundFlag ? 'Nothing to upload.' : 'Upload process finished.');
     }
   }
 
   public function cleanupAmazonS3()
   {
     if(!$this->config->get('amazonS3')) {
-      Logger::append('Amazon S3 uploader is not configured.');
-      return;
+      throw new Exception('Amazon S3 uploader is not configured.');
     }
 
     Logger::append('Cleaning up...');
-    $action = new Upload\AmazonS3($this->config);
+    $action = new Storage\AmazonS3($this->config);
     $action->cleanup();
     Logger::append('Cleanup finished');
   }

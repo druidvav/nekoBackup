@@ -1,28 +1,18 @@
 <?php
-namespace nekoBackup\Upload;
+namespace nekoBackup\Storage;
 
 use Aws\S3\S3Client;
 use nekoBackup\Logger;
-use nekoBackup\Config;
 use Aws\S3\Model\MultipartUpload\UploadBuilder;
 use Aws\Common\Exception\MultipartUploadException;
+use Symfony\Component\Finder\SplFileInfo;
 
-class AmazonS3
+class AmazonS3 extends AbstractStorage
 {
   /**
    * @var S3Client
    */
   private $client;
-
-  /**
-   * @var Config
-   */
-  protected $config;
-
-  public function __construct(Config $config)
-  {
-    $this->config = $config;
-  }
 
   protected function client()
   {
@@ -54,7 +44,36 @@ class AmazonS3
     return $config;
   }
 
-  public function upload($filename, $retries = 3)
+  public function upload()
+  {
+    $counter = 0;
+
+    foreach($this->getStorageFinder()->files() as $dir) {
+      /* @var SplFileInfo $dir */
+      if(preg_match('#\.(uploaded|tmp)$#', $dir->getBasename())) {
+        // This is semaphore file, so we just ignore it
+        continue;
+      }
+
+      if(file_exists($dir->getRealPath() . '.uploaded')) {
+        // This file is already uploaded
+        continue;
+      }
+
+      Logger::indent($dir->getBasename());
+      Logger::append('uploading file..');
+      if($this->uploadFile($dir->getRealPath(), 3)) {
+        file_put_contents($dir->getRealPath() . '.uploaded', date('r'));
+      }
+      Logger::back();
+
+      $counter++;
+    }
+
+    return $counter;
+  }
+
+  public function uploadFile($filename, $retries = 3)
   {
     $config = $this->getS3Config();
 
@@ -68,7 +87,9 @@ class AmazonS3
       ->build();
 
     $uploader->getEventDispatcher()->addListener($uploader::AFTER_PART_UPLOAD, function ($eventData) {
-      $contentLength = $eventData['source']->getContentLength();
+      $eventDataSource = $eventData['source'];
+      /* @var $eventDataSource \Guzzle\Http\EntityBody */
+      $contentLength = $eventDataSource->getContentLength();
       $totalParts = (int) ceil($contentLength / $eventData['part_size']);
       $currentPart = count($eventData['state']);
       $percent = intval(1000 * $currentPart / $totalParts) / 10;
@@ -76,8 +97,6 @@ class AmazonS3
         Logger::append($percent . '% of ' . intval($contentLength / (1024 * 1024)) . 'M uploaded');
       }
     });
-
-    Logger::append('uploading file..');
 
     try {
       $uploader->upload();
@@ -88,13 +107,12 @@ class AmazonS3
       }
       return true;
     } catch (MultipartUploadException $e) {
+      Logger::append('failed: ' . $e->getMessage());
       if($retries > 0) {
-        Logger::append('failed: ' . $e->getMessage());
         Logger::append('retrying...', 1);
         return $this->upload($filename, $retries - 1);
       } else {
         $uploader->abort();
-        Logger::append('failed: ' . $e->getMessage());
         return false;
       }
     }
@@ -109,21 +127,14 @@ class AmazonS3
       'Prefix' => $config['directory']
     ));
 
-    Logger::indent('cleanup-s3-files');
     foreach($iterator as $object) {
-      Logger::indent(basename($object['Key']));
       if($this->config->checkIfArchiveExpired($object['Key'])) {
-        Logger::append('expired, removing');
         $this->client()->deleteObject(array(
           'Bucket' => $config['bucket'],
           'Key' => $object['Key']
         ));
-        Logger::append('removed!');
-      } else {
-        Logger::append('actual');
+        Logger::append(basename($object['Key']) . ' removed!');
       }
-      Logger::back();
     }
-    Logger::back();
   }
 }
