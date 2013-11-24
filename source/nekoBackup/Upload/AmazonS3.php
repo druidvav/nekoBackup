@@ -86,15 +86,16 @@ class AmazonS3
         Logger::append('removing local file..');
         unlink($filename);
       }
+      return true;
     } catch (MultipartUploadException $e) {
       if($retries > 0) {
         Logger::append('failed: ' . $e->getMessage());
         Logger::append('retrying...', 1);
-        $this->upload($filename, $retries - 1);
-        return;
+        return $this->upload($filename, $retries - 1);
       } else {
         $uploader->abort();
         Logger::append('failed: ' . $e->getMessage());
+        return false;
       }
     }
   }

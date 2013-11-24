@@ -150,8 +150,9 @@ class App
 
         $nothingFoundFlag = false;
         $action = new Upload\AmazonS3($this->config);
-        $action->upload($dir->getRealPath(), 3);
-        file_put_contents($dir->getRealPath() . '.uploaded', date('r'));
+        if($action->upload($dir->getRealPath(), 3)) {
+          file_put_contents($dir->getRealPath() . '.uploaded', date('r'));
+        }
 
         Logger::back();
       }
