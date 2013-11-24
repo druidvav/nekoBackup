@@ -1,21 +1,12 @@
 <?php
 namespace nekoBackup\Builder;
 
-use nekoBackup\Config;
 use nekoBackup\Archive;
 
-class Directory
+class Directory extends AbstractBuilder
 {
-  protected $title;
-  protected $config;
-  protected $section;
-  protected $archives = array();
-
-  public function __construct(Config $config, $title, $section)
+  public function build()
   {
-    $this->title = $title;
-    $this->config = $config;
-    $this->section = $section;
     $this->prepareArchives($this->section['include']);
     if(!empty($this->section['exclude'])) {
       $this->handleExcludes($this->section['exclude']);
@@ -95,10 +86,5 @@ class Directory
         unset($this->archives[$id]);
       }
     }
-  }
-
-  public function getArchives()
-  {
-    return $this->archives;
   }
 }

@@ -18,7 +18,7 @@ $console->register('backup')
     $app->cleanup();
   });
 $console->register('upload')
-  ->setDescription('Upload files to  Amazon S3')
+  ->setDescription('Upload files to Amazon S3')
   ->setCode(function () use ($app) {
     $app->checkPid('upload');
     $app->uploadAmazonS3();

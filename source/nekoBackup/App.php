@@ -1,6 +1,7 @@
 <?php
 namespace nekoBackup;
 
+use Exception;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -9,39 +10,45 @@ class App
   protected $config;
   protected $archives = array();
 
+  private $classMap = array(
+    'directory' => 'Builder\\Directory',
+    'mysql' => 'Builder\\MySQL',
+    'postgres' => 'Builder\\Postgres',
+  );
+
   public function __construct()
   {
+    if(!file_exists(CONFIG_FILE)) {
+      throw new Exception('Config file does not exist.');
+    }
+
     $this->config = new Config();
+
+    if(!is_dir($this->config->get('storage'))) {
+      throw new Exception('Storage directory does not exist.');
+    }
+
+    if(!is_dir($this->config->get('metadata'))) {
+      throw new Exception('Metadata directory does not exist.');
+    }
+  }
+
+  public function archive()
+  {
+    $this->buildQueue();
+    $this->runQueue();
   }
 
   protected function buildQueue()
   {
-    if(!is_dir($this->config->get('storage'))) {
-      throw new \Exception('Storage directory does not exist.');
-    }
-
-    if(!is_dir($this->config->get('metadata'))) {
-      throw new \Exception('Metadata directory does not exist.');
-    }
-
-    if(!file_exists(CONFIG_FILE)) {
-      throw new \Exception('Config file does not exist.');
-    }
-
     Logger::append('Building backup queue...');
 
     foreach($this->config->get('sections') as $title => $section) {
       Logger::indent($title);
       Logger::append('Scanning...');
-      if($section['type'] == 'directory') {
-        $builder = new Builder\Directory($this->config, $title, $section);
-      } elseif ($section['type'] == 'mysql') {
-        $builder = new Builder\MySQL($this->config, $title, $section);
-      } elseif ($section['type'] == 'postgres') {
-        $builder = new Builder\Postgres($this->config, $title, $section);
-      } else {
-        continue;
-      }
+      $className = $this->classMap[$section['type']];
+      $builder = new $className($this->config, $title, $section);
+      /* @var $builder Builder\AbstractBuilder */
       foreach($builder->getArchives() as $archive) {
         $this->archives[] = $archive;
       }
@@ -52,10 +59,8 @@ class App
     Logger::append('Backup queue ready.');
   }
 
-  public function archive()
+  protected function runQueue()
   {
-    $this->buildQueue();
-
     Logger::append('Starting backup...');
     foreach($this->archives as $archive) {
       /* @var Archive\AbstractArchive $archive */
@@ -193,5 +198,4 @@ class App
       }
     }
   }
-
 }
