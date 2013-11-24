@@ -113,7 +113,7 @@ class Directory extends AbstractArchive
     system("nice -n 19 tar {$exclude} -czpf {$this->archiveFilename}.tmp {$include} {$options} 2>&1", $status);
     if($status == 0) {
       rename("{$this->archiveFilename}.tmp", $this->archiveFilename);
-      if(!empty($this->metadataFilename)) {
+      if(!empty($this->metadataFilename) && $this->mode == 'base') {
         rename("{$this->metadataFilename}.tmp", $this->metadataFilename);
       }
     }
