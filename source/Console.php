@@ -16,18 +16,21 @@ $console->register('backup')
     $app->checkPid('backup');
     $app->archive();
     $app->cleanup();
+    $app->removePidFile('backup');
   });
 $console->register('upload')
   ->setDescription('Upload files to Amazon S3')
   ->setCode(function () use ($app) {
-    $app->checkPid('upload');
+    $app->checkPid('s3-upload');
     $app->uploadAmazonS3();
+    $app->removePidFile('s3-upload');
   });
 $console->register('upload-cleanup')
   ->setDescription('Cleanup files in Amazon S3')
   ->setCode(function () use ($app) {
-    $app->checkPid('upload-cleanup');
+    $app->checkPid('s3-cleanup');
     $app->cleanupAmazonS3();
+    $app->removePidFile('s3-cleanup');
   });
 $console->register('install')
   ->setDescription('Install backup script to crontab')

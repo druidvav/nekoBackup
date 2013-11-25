@@ -128,4 +128,10 @@ class App
       }
     }
   }
+
+  public function removePidFile($action)
+  {
+    $pidfile = TMP_PATH . $action . '.pid';
+    unlink($pidfile);
+  }
 }
