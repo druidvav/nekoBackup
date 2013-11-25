@@ -1,6 +1,8 @@
 <?php
 namespace nekoBackup\Archive;
 
+use nekoBackup\Logger;
+
 class Directory extends AbstractArchive
 {
   protected $mode = 'full';
@@ -110,11 +112,16 @@ class Directory extends AbstractArchive
     }
 
     @unlink("{$this->archiveFilename}.tmp");
-    system("nice -n 19 tar {$exclude} -czpf {$this->archiveFilename}.tmp {$include} {$options} 2>&1", $status);
+    exec("nice -n 19 tar {$exclude} -czpf {$this->archiveFilename}.tmp {$include} {$options} 2>&1", $output, $status);
     if($status == 0) {
       rename("{$this->archiveFilename}.tmp", $this->archiveFilename);
       if(!empty($this->metadataFilename) && $this->mode == 'base') {
         rename("{$this->metadataFilename}.tmp", $this->metadataFilename);
+      }
+    } else {
+      Logger::append('TAR failed :(');
+      foreach($output as $line) {
+        Logger::append($line);
       }
     }
     return $status == 0;
