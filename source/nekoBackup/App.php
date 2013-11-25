@@ -9,9 +9,9 @@ class App
   protected $archives = array();
 
   private $classMap = array(
-    'directory' => 'Builder\\Directory',
-    'mysql' => 'Builder\\MySQL',
-    'postgres' => 'Builder\\Postgres',
+    'directory' => 'nekoBackup\\Builder\\Directory',
+    'mysql' => 'nekoBackup\\Builder\\MySQL',
+    'postgres' => 'nekoBackup\\Builder\\Postgres',
   );
 
   public function __construct()
