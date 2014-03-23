@@ -127,7 +127,7 @@ class Directory extends AbstractArchive
     return $status == 0;
   }
 
-  protected function generateArchivePath($ext)
+  protected function generateArchivePath($ext = '')
   {
     return parent::generateArchivePath($this->mode . '.' . $ext);
   }
