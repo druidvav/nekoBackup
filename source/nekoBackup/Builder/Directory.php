@@ -16,6 +16,9 @@ class Directory extends AbstractBuilder
 
   public function prepareArchives($paths)
   {
+    if(!is_array($paths)) {
+      $paths = array($paths);
+    }
     if(strpos($paths[0], '*') !== false) {
       $this->prepareArchivesByExpression($paths[0]);
     } else {
