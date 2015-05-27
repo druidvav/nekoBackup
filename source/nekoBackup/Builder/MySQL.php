@@ -27,17 +27,16 @@ class MySQL extends AbstractBuilder
 
   protected function getDatabaseList(&$config)
   {
-    if(!($conn = mysql_connect($config['hostname'], $config['username'], $config['password']))){
-      throw new \Exception('Cannot connect to mysql server!');
-    }
+    $dbh = new \PDO('mysql:host=' . $config['hostname'], $config['username'], $config['password']);
 
-    if(!($res = mysql_query('show databases', $conn))) {
+    $dbs = $dbh->query('show databases');
+    if ($dbs === false) {
       throw new \Exception('Cannot read database list');
     }
 
     $list = array();
-    while($row = mysql_fetch_assoc($res)) {
-      $list[] = $row['Database'];
+    while( ( $db = $dbs->fetchColumn( 0 ) ) !== false ) {
+      $list[] = $db;
     }
 
 //    $exclude_tables = array();
